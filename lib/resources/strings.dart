@@ -13,6 +13,7 @@ const DONT_RECEIVE_OTP_TXT = "Don't receive the OTP?";
 const RESEND_CODE_TXT = "Resend Code";
 const VERIFY_TXT = "Verify";
 const NAME_TXT = "Name";
+const EMAIL_TXT = "Email";
 const PASSWORD_TXT = "Password";
 const DATE_OF_BIRTH_TXT = "Date of Birth";
 const GENDER_TXT = "Gender";

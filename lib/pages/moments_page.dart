@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:we_chat_app/components/moments_list_view.dart';
 import 'package:we_chat_app/pages/create_moment_page.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
@@ -36,34 +37,17 @@ class MomentsPage extends StatelessWidget{
         actions: [
           GestureDetector(
               onTap: (){
-                navigateToScreen(context,CreateMomentPage());
+                navigateToScreen(context,CreateMomentPage(),false);
               },
               child: Image.asset('assets/moments/add_new_moment_icon.png',scale: 3,))
         ],
 
       ),
-      body: MomentsListView(items: items),
+      body: MomentsListView(items: items,isBookmark: false,),
     );
   }
 
 }
 
-class MomentsListView extends StatelessWidget {
-  const MomentsListView({
-    super.key,
-    required this.items,
-  });
 
-  final List<String> items;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        return const EachMomentViewItem();
-      },
-    );
-  }
-}
 

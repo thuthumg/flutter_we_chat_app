@@ -85,7 +85,7 @@ class LoginView extends StatelessWidget {
       buttonHeight: CUSTOM_BUTTON_HEIGHT,
       buttonWidth: 0.0,
       onTapButton: () {
-        navigateToScreen(context, LoginPage());
+        navigateToScreen(context, LoginPage(),false);
       },
     );
   }
@@ -106,7 +106,7 @@ class SignUpView extends StatelessWidget {
       buttonHeight: CUSTOM_BUTTON_HEIGHT,
       buttonWidth: 0.0,
       onTapButton: () {
-        navigateToScreen(context, OTPVerifyPage());
+        navigateToScreen(context, OTPVerifyPage(),false);
       },
     );
   }

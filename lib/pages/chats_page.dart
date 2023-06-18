@@ -44,7 +44,7 @@ class ChatsPage extends StatelessWidget{
            const ActiveNowChatListView(),
            ChatHistoryListView(onTapEachChat: (){
              debugPrint("check action 1");
-              navigateToScreen(context, ChatDetailPage());
+              navigateToScreen(context, ChatDetailPage(),false);
             },)
           ],
         ),

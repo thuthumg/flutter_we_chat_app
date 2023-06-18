@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:we_chat_app/blocs/otp_verify_page_bloc.dart';
 import 'package:we_chat_app/pages/sign_up_page.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
@@ -6,6 +8,7 @@ import 'package:we_chat_app/resources/strings.dart';
 import 'package:we_chat_app/utils/extensions.dart';
 import 'package:we_chat_app/widgets/custom_button_widget.dart';
 import 'package:we_chat_app/widgets/edit_text_widget.dart';
+import 'package:we_chat_app/widgets/loading_view.dart';
 import 'package:we_chat_app/widgets/otp_widget.dart';
 
 class OTPVerifyPage extends StatelessWidget {
@@ -13,69 +16,134 @@ class OTPVerifyPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: PRIMARY_COLOR,
-      appBar: AppBar(
+    return ChangeNotifierProvider(
+      create: (context)=> OtpVerifyPageBloc(),
+      child: Scaffold(
         backgroundColor: PRIMARY_COLOR,
-        elevation: 0,
-        leading: GestureDetector(
-            onTap: (){Navigator.pop(context);},
-            child: Image.asset('assets/left_button.png')),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.only(left: MARGIN_XXLARGE,right: MARGIN_LARGE),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ///Title
-              const Text(
-                HI_TXT,
-                style: TextStyle(
-                  fontSize: HI_TXT_FONT_SIZE,
-                  color: SECONDARY_COLOR,
-                  fontWeight: FontWeight.w700,
-                ),
+        appBar: AppBar(
+          backgroundColor: PRIMARY_COLOR,
+          elevation: 0,
+          leading: GestureDetector(
+              onTap: (){Navigator.pop(context);},
+              child: Image.asset('assets/left_button.png')),
+        ),
+        body: Selector<OtpVerifyPageBloc,bool>(
+          selector: (context,bloc)=>bloc.isLoading,
+          builder:(context,isLoading,child){
+            debugPrint("check isLoading $isLoading");
+            return
+              Padding(
+            padding: const EdgeInsets.only(left: MARGIN_XXLARGE,right: MARGIN_LARGE),
+            child: SingleChildScrollView(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ///Title
+                      const Text(
+                        HI_TXT,
+                        style: TextStyle(
+                          fontSize: HI_TXT_FONT_SIZE,
+                          color: SECONDARY_COLOR,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: MARGIN_MEDIUM,
+                      ),
+                      ///SubTitle
+                      const Text(
+                        CREATE_NEW_ACCOUNT_TXT,
+                        style: TextStyle(
+                          fontSize: TEXT_REGULAR_1X,
+                          color: CREATE_NEW_ACCOUNT_TXT_COLOR,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: MARGIN_MEDIUM,
+                      ),
+                      ///Image
+                      Center(
+                          child: Image.asset('assets/register/otp_img.png',
+                              fit: BoxFit.cover),),
+                      ///Email  Text section
+                      Consumer<OtpVerifyPageBloc>(
+                        builder: (context,bloc,child)=> EditTextWidget(
+                          isSecure: false,
+                          editTextName: "",
+                          editTextType: "emailText",
+                          hintTextName: EMAIL_TXT,
+                          isGroupNameText: false,
+                          onChanged: (email){
+                            bloc.onEmailChanged(email);
+                          },
+                        ),
+                      ),
+                      const SizedBox(
+                        height: MARGIN_XLARGE,
+                      ),
+                      ///Phone Number And OTP Section
+                      const PhNumTextFieldAndOTPBtnSectionView(),
+                      const SizedBox(
+                        height: MARGIN_XLARGE,
+                      ),
+
+                      ///Enter OTP section
+                      Consumer<OtpVerifyPageBloc>(
+                        builder:(context,bloc,child)=> OTPSectionView(
+                          pinCodeText: (pinText){
+                            bloc.onPinCodeText(pinText);
+                          },
+                        ),
+                      ),
+                      const SizedBox(
+                        height: MARGIN_LARGE,
+                      ),
+                      ///ResendCode Section
+                      const ResendCodeSectionView(),
+                      const SizedBox(
+                        height: MARGIN_XLARGE,
+                      ),
+                      ///Verify Section
+                      Consumer<OtpVerifyPageBloc>(
+                        builder:(context,bloc,child)=> VerifySectionView(
+                          onTapButton: (){
+                            bloc.onTapVerify()
+                            .then((_) => navigateToScreen(context, SignUpPage(
+                              phoneNum: bloc.phoneNumber,
+                              email: bloc.email
+                            ),false))
+                                .catchError((error)=>showSnackBarWithMessage(context, error.toString()));
+
+                          },
+                        ),
+                      )
+                    ],
+                  ),
+                  Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: Visibility(
+                        visible: isLoading,
+                        child: Container(
+                          // color: Colors.transparent,
+                          child: Center(
+                            child: LoadingView(),
+                          ),
+                        ),)
+                  )
+                ],
               ),
-              const SizedBox(
-                height: MARGIN_MEDIUM,
-              ),
-              ///SubTitle
-              const Text(
-                CREATE_NEW_ACCOUNT_TXT,
-                style: TextStyle(
-                  fontSize: TEXT_REGULAR_1X,
-                  color: CREATE_NEW_ACCOUNT_TXT_COLOR,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              const SizedBox(
-                height: MARGIN_MEDIUM,
-              ),
-              ///Image
-              Center(
-                  child: Image.asset('assets/register/otp_img.png',
-                      fit: BoxFit.cover),),
-              ///Phone Number And OTP Section
-              const PhNumTextFieldAndOTPBtnSectionView(),
-              const SizedBox(
-                height: MARGIN_XLARGE,
-              ),
-              ///Enter OTP section
-              const OTPSectionView(),
-              const SizedBox(
-                height: MARGIN_LARGE,
-              ),
-              ///ResendCode Section
-              const ResendCodeSectionView(),
-              const SizedBox(
-                height: MARGIN_XLARGE,
-              ),
-              ///Verify Section
-              const VerifySectionView()
-            ],
-          ),
+            ),
+          );
+
+          },
         ),
       ),
     );
@@ -83,8 +151,10 @@ class OTPVerifyPage extends StatelessWidget {
 }
 
 class VerifySectionView extends StatelessWidget {
+  final Function onTapButton;
   const VerifySectionView({
     super.key,
+    required this.onTapButton
   });
 
   @override
@@ -98,7 +168,7 @@ class VerifySectionView extends StatelessWidget {
         buttonHeight: VERITY_BUTTON_HEIGHT,
         buttonWidth: VERITY_BUTTON_WIDTH,
         onTapButton: () {
-           navigateToScreen(context, SignUpPage());
+          onTapButton();
         },
       ),
     );
@@ -139,8 +209,12 @@ class ResendCodeSectionView extends StatelessWidget {
 }
 
 class OTPSectionView extends StatelessWidget {
+
+  final Function(String) pinCodeText;
+
   const OTPSectionView({
     super.key,
+    required this.pinCodeText
   });
 
   @override
@@ -149,6 +223,7 @@ class OTPSectionView extends StatelessWidget {
       child: OTPWidget(
         pinCodeText: (String pinText) {
           debugPrint("check text = $pinText");
+          pinCodeText(pinText);
         },
       ),
     );
@@ -166,11 +241,19 @@ class PhNumTextFieldAndOTPBtnSectionView extends StatelessWidget {
       height: CUSTOM_BUTTON_HEIGHT,
       child: Row(
         children: [
-          Expanded(flex: 2, child: EditTextWidget(
-            editTextName: "",
-            editTextType: "number",
-            hintTextName: ENTER_YOUR_PH_NUMBER_TXT,
-          )),
+          Expanded(flex: 2, child: Consumer<OtpVerifyPageBloc>(
+            builder:(context,bloc,child)=> EditTextWidget(
+              isSecure: false,
+              editTextName: "",
+              editTextType: "number",
+              hintTextName: ENTER_YOUR_PH_NUMBER_TXT,
+              isGroupNameText: false,
+              onChanged: (phoneNum){
+                bloc.onUserPhoneNumberChanged(phoneNum);
+              },
+            ),
+          ),),
+
           Expanded(
             flex: 1,
             child: CustomButtonWidget(
