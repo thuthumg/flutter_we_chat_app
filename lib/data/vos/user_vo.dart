@@ -32,6 +32,8 @@ class UserVO{
   @JsonKey(name:"activeStatus")
   String? activeStatus;
 
+
+
   UserVO({this.id, this.userName, this.email, this.password, this.phoneNumber,
     this.profileUrl, this.genderType, this.dateOfBirth, this.activeStatus});
 

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:we_chat_app/data/vos/user_vo.dart';
+
 abstract class AuthenticationModel{
 
   Future<void> signup(
@@ -17,6 +19,6 @@ abstract class AuthenticationModel{
       String phoneNumber,
       );
 
-  Future<void> login(String email, String password);
-
+  Future login(String email, String password);
+  UserVO getLoggedInUser();
 }

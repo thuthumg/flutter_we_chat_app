@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:we_chat_app/resources/dimens.dart';
+import 'package:we_chat_app/utils/constants.dart';
 
 class DateOfBirthDropDownWidget extends StatefulWidget {
   Function(String) onTapDay;
   Function(String) onTapMonth;
   Function(String) onTapYear;
 
+  final String? strDay;
+  final String? strMonth;
+  final String? strYear;
+
   DateOfBirthDropDownWidget({
     required this.onTapDay,
   required this.onTapMonth,
-  required this.onTapYear});
+  required this.onTapYear,
+  required this.strDay,
+  required this.strMonth,
+  required this.strYear});
 
   @override
   _DateOfBirthDropDownWidgetState createState() =>
@@ -43,9 +51,18 @@ class _DateOfBirthDropDownWidgetState extends State<DateOfBirthDropDownWidget> {
 
   @override
   void initState() {
-    selectedDay = daysList[0];
-    selectedMonth = monthsList[0];
-    selectedYear = yearsList[0];
+    debugPrint("check param data ${widget.strDay}  ${widget.strMonth} ${widget.strYear}");
+    selectedDay = (widget.strDay != null && widget.strDay != "")?
+    daysList.firstWhere((selectValue) => selectValue == widget.strDay).toString() :
+    daysList[0];
+    selectedMonth = (widget.strMonth != null && widget.strMonth != "")?
+    changeMonthTypeFromMonthNumberToMonthName(widget.strMonth.toString()) :
+    monthsList[0];
+    selectedYear = (widget.strYear != null && widget.strYear != "")?
+    yearsList.firstWhere((selectValue) => selectValue == widget.strYear).toString() :
+    yearsList[0];
+
+
     super.initState();
   }
 
@@ -80,9 +97,13 @@ class _DateOfBirthDropDownWidgetState extends State<DateOfBirthDropDownWidget> {
 
   Widget buildDropdown(String label, List<String> items, String selectedValue,
       Function(String?) onChanged) {
+
+    debugPrint("check value ${items.firstWhere((selectValue) => selectValue == selectedValue)}");
+
     return DropdownButton<String>(
       //elevation: 10,
-      value: selectedValue,
+     // value: items.firstWhere((selectValue) => selectValue == selectedValue).toString(),//selectedValue.toString(),
+      value:selectedValue,//selectedValue.toString(),
       onChanged: onChanged,
       items: items.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(

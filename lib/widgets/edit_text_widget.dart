@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pinput/pinput.dart';
 import 'package:we_chat_app/resources/colors.dart';
 
 class EditTextWidget extends StatefulWidget {
@@ -26,12 +27,15 @@ class EditTextWidget extends StatefulWidget {
 }
 
 class _EditTextWidgetState extends State<EditTextWidget> {
+
   TextEditingController _controller = TextEditingController();
+
 
   @override
   Widget build(BuildContext context) {
+    _controller.setText(widget.editTextName);
     return TextField(
-      controller: _controller,
+      controller: _controller ,
       obscureText: widget.isSecure,
       onChanged: (text) {
         widget.onChanged(text);
@@ -42,7 +46,7 @@ class _EditTextWidgetState extends State<EditTextWidget> {
             : (widget.editTextType == "emailText")
                 ? FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9@._]'))
                 : FilteringTextInputFormatter.allow(RegExp(r'[A-Z,0-9,a-z]')),
-        // Only allow numbers
+
       ],
       keyboardType: (widget.editTextType == "number")
           ? TextInputType.number

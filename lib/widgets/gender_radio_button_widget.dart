@@ -8,8 +8,11 @@ class GenderRadioButtonWidget extends StatefulWidget {
 
   final Function(String) onTapGender;
 
+  final String genderType;
+
   GenderRadioButtonWidget({
-    required this.onTapGender
+    required this.onTapGender,
+    required this.genderType
 });
 
   @override
@@ -17,7 +20,13 @@ class GenderRadioButtonWidget extends StatefulWidget {
 }
 
 class _GenderRadioButtonWidgetState extends State<GenderRadioButtonWidget> {
-  Gender selectedGender = Gender.male;
+  Gender? selectedGender;
+
+  @override
+  void initState() {
+    selectedGender =  (widget.genderType != "")? changeGenderType(widget.genderType) : Gender.male;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +66,6 @@ class _GenderRadioButtonWidgetState extends State<GenderRadioButtonWidget> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Radio<Gender>(
-
               value: gender,
               groupValue: selectedGender,
               onChanged: (value) {
@@ -76,7 +84,7 @@ class _GenderRadioButtonWidgetState extends State<GenderRadioButtonWidget> {
               },
             ),
             Text(label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: TEXT_REGULAR,
               color: SECONDARY_COLOR,
               fontWeight: FontWeight.w500
@@ -86,4 +94,18 @@ class _GenderRadioButtonWidgetState extends State<GenderRadioButtonWidget> {
       ),
     );
   }
+}
+
+Gender changeGenderType(String genderType) {
+
+  if(genderType == "Male")
+    {
+      return Gender.male;
+    }else if(genderType == "Female")
+      {
+        return Gender.female;
+      }else{
+    return Gender.other;
+  }
+
 }

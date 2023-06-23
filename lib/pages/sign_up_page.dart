@@ -304,7 +304,7 @@ class PasswordTextFieldSectionView extends StatelessWidget {
       children: [
         EditTextWidget(
           isSecure: true,
-          editTextName: "",
+          editTextName: bloc.password,
           editTextType: "password",
           hintTextName: PASSWORD_TXT,
           isGroupNameText: false,
@@ -343,6 +343,7 @@ class GenderTypeSectionView extends StatelessWidget {
           ),
         ),
         GenderRadioButtonWidget(
+          genderType: "",
           onTapGender: (selectedGenderType){
             bloc.genderType = selectedGenderType;
           },
@@ -377,6 +378,9 @@ class DateOfBirthSectionView extends StatelessWidget {
           ),
         ),
         DateOfBirthDropDownWidget(
+          strMonth: "",
+          strDay: "",
+          strYear: "",
           onTapDay: (selectedDay){
             bloc.onDayChanged(selectedDay);
           },
@@ -454,9 +458,10 @@ class NameTextFieldSectionView extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+
         EditTextWidget(
           isSecure: false,
-          editTextName: "",
+          editTextName: bloc.name,
           editTextType: "text",
           hintTextName: NAME_TXT,
           isGroupNameText: false,

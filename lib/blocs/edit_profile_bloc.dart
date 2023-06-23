@@ -5,10 +5,12 @@ import 'package:we_chat_app/data/models/authentication_model.dart';
 import 'package:we_chat_app/data/models/authentication_model_impl.dart';
 import 'package:we_chat_app/data/models/we_chat_app_model.dart';
 import 'package:we_chat_app/data/models/we_chat_app_model_impl.dart';
+import 'package:we_chat_app/data/vos/otp_code_vo.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/utils/constants.dart';
 
-class SignUpPageBloc extends ChangeNotifier{
+class EditProfileBloc extends ChangeNotifier{
+
 
   final WeChatAppModel _mWeChatAppModel = WeChatAppModelImpl();
   final AuthenticationModel _authenticationModel = AuthenticationModelImpl();
@@ -17,7 +19,9 @@ class SignUpPageBloc extends ChangeNotifier{
   bool isTextFieldError = false;
   bool isDisposed = false;
   bool isLoading = false;
-
+  String userId = "";
+  String phoneNum = "";
+  String email = "";
   String name = "";
   String dateOfBirth = "";
   String selectedDay= "";
@@ -26,16 +30,27 @@ class SignUpPageBloc extends ChangeNotifier{
 
   String genderType = "";
   String password = "";
-  bool termAndServiceFlag = false;
   String profilePicture = "";
 
   ///Image
   File? chosenImageFile;
 
+  EditProfileBloc(UserVO? userVO){
+    userId = userVO?.id ?? "";
+    email = userVO?.email ?? "";
+    phoneNum = userVO?.phoneNumber ?? "";
+    name = userVO?.userName??"";
+    dateOfBirth = userVO?.dateOfBirth??"";
+    selectedDay= ((userVO?.dateOfBirth??"").split('-').isNotEmpty)?
+    (userVO?.dateOfBirth??"").split('-')[2] : "";
+    selectedMonth = ((userVO?.dateOfBirth??"").split('-').isNotEmpty)?
+    (userVO?.dateOfBirth??"").split('-')[1] : "";
+    selectedYear = ((userVO?.dateOfBirth??"").split('-').isNotEmpty)?
+    (userVO?.dateOfBirth??"").split('-')[0] : "";
 
-
-  SignUpPageBloc({String? phoneNumber}){
-
+    genderType =  userVO?.genderType??"";
+    password =  userVO?.password??"";
+    profilePicture =  userVO?.profileUrl??"";
   }
   void onImageChosen(File imageFile){
     chosenImageFile = imageFile;
@@ -44,6 +59,10 @@ class SignUpPageBloc extends ChangeNotifier{
 
   void onNameChanged(String name){
     this.name = name;
+    _notifySafely();
+  }
+  void onPhoneNumChanged(String phoneNum){
+    this.phoneNum = phoneNum;
     _notifySafely();
   }
   void onPasswordChanged(String password){
@@ -116,7 +135,7 @@ class SignUpPageBloc extends ChangeNotifier{
   }
   String changeMonthType(String month){
     if (selectedMonth == monthsList[0]) {
-     return month = '1';
+      return month = '1';
     }
     if (selectedMonth == monthsList[1]) {
       return month = '2';
@@ -155,7 +174,6 @@ class SignUpPageBloc extends ChangeNotifier{
     }
   }
 
-
   void _showLoading(){
     debugPrint("check isLoading before flag $isLoading");
     isLoading = true;
@@ -177,7 +195,5 @@ class SignUpPageBloc extends ChangeNotifier{
     super.dispose();
     isDisposed = true;
   }
-
-
 
 }

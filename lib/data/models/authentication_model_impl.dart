@@ -76,8 +76,13 @@ class AuthenticationModelImpl extends AuthenticationModel{
   }
 
   @override
-  Future<void> login(String email, String password) {
+  Future login(String email, String password) {
     return mDataAgent.login(email, password);
+  }
+
+  @override
+  UserVO getLoggedInUser() {
+    return mDataAgent.getLoggedInUser();
   }
 
 

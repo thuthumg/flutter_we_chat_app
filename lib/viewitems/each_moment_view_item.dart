@@ -1,32 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:we_chat_app/data/vos/moment_vo.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
+import 'package:we_chat_app/utils/constants.dart';
 
 class EachMomentViewItem extends StatelessWidget {
+  final MomentVO? mMomentVO;
+  final Function(MomentVO) onTapBookmark;
+  final String loginUserPhoneNum;
   const EachMomentViewItem({
     super.key,
+    required this.mMomentVO,
+    required this.onTapBookmark,
+    required this.loginUserPhoneNum
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
         ///moment profile , title , contextual menu section
         Padding(
           padding: EdgeInsets.only(top: MARGIN_CARD_MEDIUM_2,
               left:MARGIN_CARD_MEDIUM_2 ),
-          child: ProfileImgAndTitleSettingSectionView(),
+          child: ProfileImgAndTitleSettingSectionView(mMomentVO: mMomentVO),
         ),
         SizedBox(height: MARGIN_MEDIUM,),
 
         ///moment text and description section
-        DescriptionTextSectionView(),
+        DescriptionTextSectionView(mMomentVO: mMomentVO),
         SizedBox(height: MARGIN_MEDIUM,),
 
         /// like , comment and save section
-        LikeCommentSaveActionSectionView(),
+        LikeCommentSaveActionSectionView(
+          loginUserPhoneNum:loginUserPhoneNum,
+          mMomentVO: mMomentVO,
+        onTapBookMark: (mMomentVO){
+          onTapBookmark(mMomentVO);
+        },
+        ),
         SizedBox(height: MARGIN_MEDIUM,),
 
       ],
@@ -36,12 +51,25 @@ class EachMomentViewItem extends StatelessWidget {
 
 class LikeCommentSaveActionSectionView extends StatelessWidget {
 
+  final MomentVO? mMomentVO;
+
+  final Function(MomentVO) onTapBookMark;
+
+  final String loginUserPhoneNum;
+
   const LikeCommentSaveActionSectionView({
     super.key,
+    required this.mMomentVO,
+    required this.onTapBookMark,
+    required this.loginUserPhoneNum
+
   });
 
   @override
   Widget build(BuildContext context) {
+
+
+
     return Padding(
       padding: const EdgeInsets.only(left: MARGIN_CARD_MEDIUM_2,
       right: MARGIN_CARD_MEDIUM_2,
@@ -54,11 +82,16 @@ class LikeCommentSaveActionSectionView extends StatelessWidget {
            isSelected: true,
          ),
           Row(
-            children: const [
-              Icon(Icons.comment_outlined,color: Colors.grey,),
-              SizedBox(width: MARGIN_MEDIUM,),
-              SaveMomentActionView(
-                isSelected: false,
+            children: [
+              const Icon(Icons.comment_outlined,color: Colors.grey,),
+              const SizedBox(width: MARGIN_MEDIUM,),
+              GestureDetector(
+                onTap: (){
+                  onTapBookMark(mMomentVO!);
+                },
+                child: SaveMomentActionView(
+                  isSelected: (mMomentVO?.bookmarkedIdList?.contains(loginUserPhoneNum)??false)? true :false,
+                ),
               ),
             ],
           )
@@ -119,24 +152,36 @@ class LikeActionView extends StatelessWidget {
 }
 
 class DescriptionTextSectionView extends StatelessWidget {
+  final MomentVO? mMomentVO;
+
   const DescriptionTextSectionView({
     super.key,
+    required this.mMomentVO
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: const [
-        TextDescView(),
-        ImageDescView()
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        TextDescView(mMomentVO: mMomentVO),
+        Visibility(
+            visible:  (mMomentVO?.photoOrVideoUrlLink == null || mMomentVO?.photoOrVideoUrlLink?.length == 0)? false : true ,
+            child:  ImageDescView(mMomentVO:mMomentVO))
+
+
       ],
     );
   }
 }
 
 class ImageDescView extends StatelessWidget {
+  final MomentVO? mMomentVO;
+
   const ImageDescView({
     super.key,
+    required this.mMomentVO
   });
 
   @override
@@ -156,12 +201,20 @@ class ImageDescView extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
             ),
-            child: ClipRRect(
+            child:
+            (mMomentVO?.photoOrVideoUrlLink == null || mMomentVO?.photoOrVideoUrlLink == "")?
+                Container():
+            ClipRRect(
               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-              child: Image.asset(
-                'assets/moments/background_sample.jpg',
+              child:
+              Image.network(
+               mMomentVO?.photoOrVideoUrlLink.toString()??"",
                 fit: BoxFit.cover,
               ),
+              // Image.asset(
+              //   'assets/moments/background_sample.jpg',
+              //   fit: BoxFit.cover,
+              // ),
             ),
           );
 
@@ -172,17 +225,22 @@ class ImageDescView extends StatelessWidget {
 }
 
 class TextDescView extends StatelessWidget {
+
+  final MomentVO? mMomentVO;
+
   const TextDescView({
     super.key,
+    required this.mMomentVO
   });
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
+    return Padding(
       padding: EdgeInsets.all(MARGIN_CARD_MEDIUM_2),
       child: Text(
-        "A machine resembling a human being and able to replicate certain human movements and functions automatically",
-        style: TextStyle(
+        mMomentVO?.description??"",
+        textAlign: TextAlign.start,
+        style: const TextStyle(
           fontSize: TEXT_REGULAR_2X,
           color: SECONDARY_COLOR,
           fontWeight: FontWeight.w400,
@@ -193,8 +251,12 @@ class TextDescView extends StatelessWidget {
 }
 
 class ProfileImgAndTitleSettingSectionView extends StatelessWidget {
+
+  final MomentVO? mMomentVO;
+
   const ProfileImgAndTitleSettingSectionView({
     super.key,
+    required this.mMomentVO
   });
 
   @override
@@ -216,27 +278,32 @@ class ProfileImgAndTitleSettingSectionView extends StatelessWidget {
                   width: 2.0,
                 ),
               ),
-              child: CircleAvatar(
+              child:
+              (mMomentVO?.profileUrl == null || mMomentVO?.profileUrl == "")?
+              const CircleAvatar(
                 backgroundImage: AssetImage('assets/moments/profile_sample.jpg'),
+                radius: 21,
+              ): CircleAvatar(
+                backgroundImage: NetworkImage(mMomentVO?.profileUrl??""),
                 radius: 21,
               ),
             ),
-            SizedBox(width: MARGIN_MEDIUM,),
+            const SizedBox(width: MARGIN_MEDIUM,),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
-                  "Michael",
-                  style: TextStyle(
+                  mMomentVO?.name??"",
+                  style: const TextStyle(
                     fontSize: TEXT_REGULAR_3X,
                     color: SECONDARY_COLOR,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: MARGIN_SMALL,),
+                const SizedBox(height: MARGIN_SMALL,),
                 Text(
-                  "15 min ago",
-                  style: TextStyle(
+                  convertTimeToText(mMomentVO?.timestamp)??"",
+                  style: const TextStyle(
                     fontSize: TEXT_SMALL,
                     color: TEXT_FIELD_HINT_TXT_COLOR,
                     fontWeight: FontWeight.w400,

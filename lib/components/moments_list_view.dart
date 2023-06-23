@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:we_chat_app/blocs/moments_page_bloc.dart';
+import 'package:we_chat_app/blocs/profile_page_bloc.dart';
+import 'package:we_chat_app/data/vos/moment_vo.dart';
 import 'package:we_chat_app/viewitems/each_moment_view_item.dart';
 
 class MomentsListView extends StatelessWidget {
 
   final bool isBookmark;
+ final Function(MomentVO) onTapBookMark;
+ final String loginUserPhoneNum;
 
-  const MomentsListView({
+  MomentsListView({
     super.key,
     required this.items,
-    required this.isBookmark
+    required this.isBookmark,
+   required this.onTapBookMark,
+    required this.loginUserPhoneNum
   });
 
-  final List<String> items;
+  final List<MomentVO> items;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +28,12 @@ class MomentsListView extends StatelessWidget {
       physics: NeverScrollableScrollPhysics(),
       itemCount: items.length,
       itemBuilder: (context, index) {
-        return const EachMomentViewItem();
+        return EachMomentViewItem(
+          loginUserPhoneNum:loginUserPhoneNum,
+          mMomentVO:items[index],
+          onTapBookmark: (momentVO){
+            onTapBookMark(momentVO);
+          },);
       },
     ):
     ListView.builder(
@@ -29,7 +41,12 @@ class MomentsListView extends StatelessWidget {
       // physics: NeverScrollableScrollPhysics(),
       itemCount: items.length,
       itemBuilder: (context, index) {
-        return const EachMomentViewItem();
+        return EachMomentViewItem(mMomentVO:items[index],
+            loginUserPhoneNum:loginUserPhoneNum,
+        onTapBookmark: (momentVO){
+          onTapBookMark(momentVO);
+
+        },);
       },
     );
   }

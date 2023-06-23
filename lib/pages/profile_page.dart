@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:we_chat_app/blocs/profile_page_bloc.dart';
 import 'package:we_chat_app/components/moments_list_view.dart';
+import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/pages/edit_user_information_alert_box_view.dart';
 import 'package:we_chat_app/pages/qr_generate_view.dart';
 import 'package:we_chat_app/pages/show_qr_generate_view_pop_up.dart';
@@ -7,23 +10,32 @@ import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 
 class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
+
+  final UserVO? userVO;
+
+  const ProfilePage({super.key,required this.userVO});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CHAT_PAGE_BG_COLOR,
-      appBar: const ProfilePageAppBarView(),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            ///show login user information section view
-            LoginUserInformationView(),
+    return ChangeNotifierProvider(
+      create: (context) =>
+          ProfilePageBloc(userVO),
+      child: Consumer<ProfilePageBloc>(
+        builder: (context, bloc, child) => Scaffold(
+          backgroundColor: CHAT_PAGE_BG_COLOR,
+          appBar: ProfilePageAppBarView(userVO: userVO),
+          body: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ///show login user information section view
+                LoginUserInformationView(bloc: bloc),
 
-            ///bookmark moment list view
-            BookmarkMomentsListView()
-          ],
+                ///bookmark moment list view
+                BookmarkMomentsListView(bloc:bloc)
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -32,11 +44,15 @@ class ProfilePage extends StatelessWidget {
 
 class ProfilePageAppBarView extends StatelessWidget
     implements PreferredSizeWidget {
+
+  UserVO? userVO;
+
   @override
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
 
-  const ProfilePageAppBarView({
+  ProfilePageAppBarView({
     super.key,
+    required this.userVO
   });
 
   @override
@@ -58,7 +74,7 @@ class ProfilePageAppBarView extends StatelessWidget
               showDialog(
                   context: context,
                   builder: (BuildContext context) =>
-                      _buildPopupDialog(context));
+                      _buildPopupDialog(context,userVO!));
             },
             child: Image.asset(
               'assets/profile/edit_icon.png',
@@ -69,18 +85,24 @@ class ProfilePageAppBarView extends StatelessWidget
   }
 }
 
-Widget _buildPopupDialog(BuildContext context) {
-  return EditUserInformationAlertBoxView();
+Widget _buildPopupDialog(BuildContext context,UserVO userVO) {
+  return EditUserInformationAlertBoxView(userVO:userVO);
 }
 
 class BookmarkMomentsListView extends StatelessWidget {
+
+  final ProfilePageBloc bloc;
+
   const BookmarkMomentsListView({
     super.key,
+    required this.bloc
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return
+      (bloc.mMomentsList != null && bloc.mMomentsList.length > 0)?
+      Padding(
       padding: const EdgeInsets.symmetric(horizontal: MARGIN_CARD_MEDIUM_2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,26 +121,30 @@ class BookmarkMomentsListView extends StatelessWidget {
           ),
           SizedBox(
             height: MediaQuery.of(context).size.height,
-            child: const MomentsListView(
-              items: [
-                'Item 1',
-                'Item 2',
-                'Item 3',
-                'Item 4',
-                'Item 5',
-              ],
+            child: MomentsListView(
+              loginUserPhoneNum: bloc.mUserVO?.phoneNumber.toString()??"",
+              items: bloc.mMomentsList,
               isBookmark: true,
+              onTapBookMark: (momentVO){
+                bloc.saveBookMark(bloc.mUserVO!, momentVO);
+              },
+
             ),
           )
         ],
       ),
-    );
+    ):
+    Container();
   }
 }
 
 class LoginUserInformationView extends StatelessWidget {
-  const LoginUserInformationView({
+
+  ProfilePageBloc bloc;
+
+  LoginUserInformationView({
     super.key,
+    required this.bloc
   });
 
   @override
@@ -133,12 +159,12 @@ class LoginUserInformationView extends StatelessWidget {
         padding: const EdgeInsets.all(MARGIN_CARD_MEDIUM_2),
         child: Row(
           // mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: const [
+          children: [
             ///Profile Image show, upload profile image and generate QR code section
-            ProfileShowProfileUploadAndQRGenerateView(),
+            ProfileShowProfileUploadAndQRGenerateView(bloc:bloc),
 
             ///show user phone no, dob, gender
-            UserInformationShowView()
+            UserInformationShowView(bloc:bloc)
           ],
         ),
       ),
@@ -147,8 +173,12 @@ class LoginUserInformationView extends StatelessWidget {
 }
 
 class UserInformationShowView extends StatelessWidget {
+
+  final ProfilePageBloc bloc;
+
   const UserInformationShowView({
     super.key,
+    required this.bloc
   });
 
   @override
@@ -157,20 +187,20 @@ class UserInformationShowView extends StatelessWidget {
       padding: const EdgeInsets.only(left: MARGIN_XLARGE),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          UserProfileNameView(),
-          SizedBox(
+        children: [
+          UserProfileNameView(userName:bloc.name??''),
+         const SizedBox(
             height: MARGIN_MEDIUM,
           ),
-          UserPhoneNumView(),
-          SizedBox(
+          UserPhoneNumView(phoneNum:bloc.phoneNum??''),
+          const SizedBox(
             height: MARGIN_MEDIUM,
           ),
-          UserDOBView(),
-          SizedBox(
+          UserDOBView(dateOfBirth:bloc.dateOfBirth??''),
+          const SizedBox(
             height: MARGIN_MEDIUM,
           ),
-          UserGenderView()
+          UserGenderView(genderType:bloc.genderType??'')
         ],
       ),
     );
@@ -178,8 +208,12 @@ class UserInformationShowView extends StatelessWidget {
 }
 
 class UserGenderView extends StatelessWidget {
+
+  final String genderType;
+
   const UserGenderView({
     super.key,
+    required this.genderType
   });
 
   @override
@@ -191,12 +225,12 @@ class UserGenderView extends StatelessWidget {
           fit: BoxFit.cover,
           scale: 3,
         ),
-        SizedBox(
+        const SizedBox(
           width: MARGIN_CARD_MEDIUM_2,
         ),
-        const Text(
-          'Male',
-          style: TextStyle(
+        Text(
+         genderType,
+          style: const TextStyle(
             fontSize: TEXT_REGULAR,
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -208,8 +242,12 @@ class UserGenderView extends StatelessWidget {
 }
 
 class UserDOBView extends StatelessWidget {
+
+  final String dateOfBirth;
+
   const UserDOBView({
     super.key,
+    required this.dateOfBirth
   });
 
   @override
@@ -221,12 +259,12 @@ class UserDOBView extends StatelessWidget {
           fit: BoxFit.cover,
           scale: 3,
         ),
-        SizedBox(
+        const SizedBox(
           width: MARGIN_CARD_MEDIUM_2,
         ),
-        const Text(
-          '1994-02-01',
-          style: TextStyle(
+        Text(
+          dateOfBirth,
+          style: const TextStyle(
             fontSize: TEXT_REGULAR,
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -238,8 +276,12 @@ class UserDOBView extends StatelessWidget {
 }
 
 class UserPhoneNumView extends StatelessWidget {
+
+  final String phoneNum;
+
   const UserPhoneNumView({
     super.key,
+    required this.phoneNum
   });
 
   @override
@@ -251,12 +293,12 @@ class UserPhoneNumView extends StatelessWidget {
           fit: BoxFit.cover,
           scale: 3,
         ),
-        SizedBox(
+        const SizedBox(
           width: MARGIN_CARD_MEDIUM_2,
         ),
-        const Text(
-          '09 952819765',
-          style: TextStyle(
+         Text(
+         phoneNum,
+          style: const TextStyle(
             fontSize: TEXT_REGULAR,
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -268,15 +310,19 @@ class UserPhoneNumView extends StatelessWidget {
 }
 
 class UserProfileNameView extends StatelessWidget {
+
+  final String userName;
+
   const UserProfileNameView({
     super.key,
+    required this.userName
   });
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      'Aung Aung',
-      style: TextStyle(
+    return Text(
+      userName,
+      style: const TextStyle(
         fontSize: TEXT_REGULAR_3X,
         color: Colors.white,
         fontWeight: FontWeight.w600,
@@ -286,18 +332,34 @@ class UserProfileNameView extends StatelessWidget {
 }
 
 class ProfileShowProfileUploadAndQRGenerateView extends StatelessWidget {
-  const ProfileShowProfileUploadAndQRGenerateView({
+
+  ProfilePageBloc bloc;
+
+  ProfileShowProfileUploadAndQRGenerateView({
     super.key,
+    required this.bloc
   });
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
+    (bloc.profilePicture == "") ?
         CircleAvatar(
           radius: 55,
-          backgroundImage: AssetImage('assets/moments/profile_sample.jpg'),
-        ),
+          backgroundImage:
+
+          AssetImage('assets/moments/profile_sample.jpg')
+
+        ):
+    CircleAvatar(
+        radius: 55,
+        backgroundImage:
+
+        NetworkImage('${bloc.profilePicture}')
+
+    )
+        ,
         Positioned(
           bottom: 0,
           left: 0,
@@ -318,7 +380,7 @@ class ProfileShowProfileUploadAndQRGenerateView extends StatelessWidget {
                       _buildQRPopupDialog(context),
                 );
               },
-              child: QRSectionView(qrStr: "www.google.com", qrSize: 55.0,isPopupQR: false,),
+              child: QRSectionView(qrStr: "${bloc.userId}", qrSize: 55.0,isPopupQR: false,),
             )
             // Image.asset('assets/profile/QR_icon.png',fit: BoxFit.cover,scale: 3,),
             ),

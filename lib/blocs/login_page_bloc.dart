@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:we_chat_app/data/models/authentication_model.dart';
 import 'package:we_chat_app/data/models/authentication_model_impl.dart';
+import 'package:we_chat_app/data/vos/user_vo.dart';
 
 class LoginPageBloc extends ChangeNotifier{
 
@@ -15,6 +16,7 @@ class LoginPageBloc extends ChangeNotifier{
 
   Future onTapLogin(){
     _showLoading();
+
     return _model.login(email,password).whenComplete(()=>_hideLoading());
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:we_chat_app/blocs/login_page_bloc.dart';
+import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/pages/home_page.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/pages/chat_detail_page.dart';
 import 'package:we_chat_app/pages/create_group_contacts_page.dart';
 import 'package:we_chat_app/pages/qr_scan_page.dart';
@@ -11,7 +12,10 @@ import 'package:we_chat_app/viewitems/name_first_character_group_group_each_view
 import 'package:we_chat_app/widgets/search_box_widget.dart';
 
 class ContactsPage extends StatelessWidget {
-  const ContactsPage({super.key});
+
+  final UserVO? userVO;
+
+  ContactsPage({super.key,required this.userVO});
 
   @override
   Widget build(BuildContext context) {

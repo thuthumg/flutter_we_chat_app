@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/pages/chat_detail_page.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
@@ -8,7 +9,10 @@ import 'package:we_chat_app/viewitems/each_chat_history_view_item.dart';
 import 'package:we_chat_app/viewitems/each_chat_view_item.dart';
 
 class ChatsPage extends StatelessWidget{
-  const ChatsPage({super.key});
+
+  final UserVO? userVO;
+
+  const ChatsPage({super.key,required this.userVO});
 
   @override
   Widget build(BuildContext context) {
