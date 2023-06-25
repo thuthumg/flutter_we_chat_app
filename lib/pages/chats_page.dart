@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:we_chat_app/blocs/chats_page_bloc.dart';
+import 'package:we_chat_app/data/vos/chat_history_vo.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/pages/chat_detail_page.dart';
 import 'package:we_chat_app/resources/colors.dart';
@@ -16,41 +19,55 @@ class ChatsPage extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CHAT_PAGE_BG_COLOR,
-      appBar: AppBar(
-        backgroundColor: PRIMARY_COLOR,
-        automaticallyImplyLeading: false,
-        title: const Text(
-          CHAT_TXT,
-          style: TextStyle(
-            fontSize: TEXT_HEADING_2X,
-            color: SECONDARY_COLOR,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        actions: [
-          GestureDetector(
-              onTap: (){
-               // navigateToScreen(context,CreateMomentPage());
-              },
-              child: Image.asset('assets/chat/search_icon.png',scale: 3,))
-        ],
+    return ChangeNotifierProvider(
+      create: (context) => ChatsPageBloc(),
+      child: Consumer<ChatsPageBloc>(
+        builder: (context,bloc,child)=>Scaffold(
+          backgroundColor: CHAT_PAGE_BG_COLOR,
+          appBar: AppBar(
+            backgroundColor: PRIMARY_COLOR,
+            automaticallyImplyLeading: false,
+            title: const Text(
+              CHAT_TXT,
+              style: TextStyle(
+                fontSize: TEXT_HEADING_2X,
+                color: SECONDARY_COLOR,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            actions: [
+              GestureDetector(
+                  onTap: (){
+                   // navigateToScreen(context,CreateMomentPage());
+                  },
+                  child: Image.asset('assets/chat/search_icon.png',scale: 3,))
+            ],
 
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-         // mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-           const ActiveNowTextView(),
-           const SizedBox(height: MARGIN_MEDIUM,),
-           const ActiveNowChatListView(),
-           ChatHistoryListView(onTapEachChat: (){
-             debugPrint("check action 1");
-              navigateToScreen(context, ChatDetailPage(),false);
-            },)
-          ],
+          ),
+          body: SingleChildScrollView(
+            child: Column(
+             // mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+               const ActiveNowTextView(),
+               const SizedBox(height: MARGIN_MEDIUM,),
+               ActiveNowChatListView(
+                   chatHistoryVOList: bloc.chatHistoryVOList
+               ),
+               ChatHistoryListView(onTapEachChat: (chatHistoryVO){
+                 debugPrint("check action 1");
+                  navigateToScreen(context,  ChatDetailPage(
+                    chatUserProfile:chatHistoryVO.chatUserProfileUrl??"",
+                    chatUserName:chatHistoryVO.chatUserName??"",
+                    chatUserId:chatHistoryVO.chatUserId??"",
+                    isGroupChat: false,
+                  ),false);
+                },
+                   chatHistoryVOList: bloc.chatHistoryVOList
+               )
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -80,8 +97,12 @@ class ActiveNowTextView extends StatelessWidget {
 }
 
 class ActiveNowChatListView extends StatelessWidget {
+
+  final List<ChatHistoryVO> chatHistoryVOList;
+
   const ActiveNowChatListView({
     super.key,
+    required this.chatHistoryVOList
   });
 
   @override
@@ -92,9 +113,10 @@ class ActiveNowChatListView extends StatelessWidget {
         height: ACTIVE_NOW_CHAT_LIST_SECTION_HEIGHT,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
-          itemCount: 10,
+          itemCount: chatHistoryVOList.length,
           itemBuilder: (context, index) {
-            return const EachChatViewItem();
+            return EachChatViewItem(
+                chatHistoryVO:chatHistoryVOList[index]);
           },
         ),
       ),
@@ -104,11 +126,14 @@ class ActiveNowChatListView extends StatelessWidget {
 
 class ChatHistoryListView extends StatelessWidget {
 
-  final Function onTapEachChat;
+  final Function(ChatHistoryVO) onTapEachChat;
+
+  final List<ChatHistoryVO> chatHistoryVOList;
 
   const ChatHistoryListView({
     super.key,
-    required this.onTapEachChat
+    required this.onTapEachChat,
+    required this.chatHistoryVOList
   });
 
   @override
@@ -117,12 +142,15 @@ class ChatHistoryListView extends StatelessWidget {
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
       scrollDirection: Axis.vertical,
-      itemCount: 10,
+      itemCount: chatHistoryVOList.length,
       itemBuilder: (context, index) {
-        return EachChatHistoryViewItem(onTapEachChat: (){
+        return EachChatHistoryViewItem(
+            onTapEachChat: (chatHistoryVO){
           debugPrint("check action 2");
-         onTapEachChat();
-        });
+         onTapEachChat(chatHistoryVO);
+        },
+            chatHistoryVO: chatHistoryVOList[index]
+        );
       },
     );
   }

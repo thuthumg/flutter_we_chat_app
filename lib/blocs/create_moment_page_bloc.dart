@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import 'package:we_chat_app/data/models/authentication_model.dart';
 import 'package:we_chat_app/data/models/authentication_model_impl.dart';
 import 'package:we_chat_app/data/models/we_chat_app_model.dart';
@@ -20,8 +21,6 @@ class CreateMomentPageBloc extends ChangeNotifier {
     'assets/moments/add_choose_img_or_video_pic.png'
   ]; // List to store selected images
 
-  // ///Image
-  // File? chosenImageFile;
 
 
   String userName = "";
@@ -29,7 +28,6 @@ class CreateMomentPageBloc extends ChangeNotifier {
   MomentVO? mNewMoment;
   UserVO? _loggedInUser;
 
-  Color themeColor = Colors.black;
 
   UserVO? userVO;
 
@@ -37,6 +35,8 @@ class CreateMomentPageBloc extends ChangeNotifier {
   final WeChatAppModel _mWeChatAppModel = WeChatAppModelImpl();
   final AuthenticationModel _authenticationModel = AuthenticationModelImpl();
 
+  VideoPlayerController? _videoController;
+  VideoPlayerController? get videoController => _videoController;
 
   CreateMomentPageBloc() {
     _showLoading();
@@ -53,8 +53,6 @@ class CreateMomentPageBloc extends ChangeNotifier {
 
 
 
-  
-
   }
 
   void onNewMomentTextChanged(String newMomentDescription) {
@@ -63,20 +61,20 @@ class CreateMomentPageBloc extends ChangeNotifier {
 
   Future onTapAddNewMoment() {
     _showLoading();
-    if (newMomentDescription.isEmpty) {
+    if ((newMomentDescription.isEmpty && selectedImages.length == 1) ||   selectedImages.isEmpty ) {
+     _hideLoading();
       isAddNewMomentError = true;
       _notifySafely();
       return Future.error("Error");
     } else {
       isLoading = true;
-      _notifySafely();
       isAddNewMomentError = false;
+      _notifySafely();
         return _createNewMoment().then((value){
           isLoading = false;
           _hideLoading();
           _notifySafely();
         });
-
 
     }
   }
@@ -84,7 +82,7 @@ class CreateMomentPageBloc extends ChangeNotifier {
   Future<void> _createNewMoment(){
     List<File> uploadImagesStr =[];
     for (int i = 0; i < selectedImages.length; i++) {
-     // print("Element at index $i: ${numbers[i]}");
+      print("Element at index $i: ${selectedImages[i]}");
       if(i>0)
         {
           uploadImagesStr.add(selectedImages[i]);
@@ -95,9 +93,11 @@ class CreateMomentPageBloc extends ChangeNotifier {
     return _mWeChatAppModel.addNewMoment(userVO,newMomentDescription,uploadImagesStr);
   }
   @override
-  void dispose() {
+  void dispose() async{
     super.dispose();
+    await _videoController?.dispose();
     isDisposed = true;
+
   }
 
   void _notifySafely() {
@@ -140,5 +140,23 @@ class CreateMomentPageBloc extends ChangeNotifier {
   void _hideLoading(){
     isLoading = false;
     _notifySafely();
+  }
+
+
+  Future<void> initVideo(String path) async {
+    _videoController?.dispose();
+    _videoController = VideoPlayerController.file(File(path));
+    await _videoController!.initialize();
+    notifyListeners();
+  }
+
+  Future<void> play() async {
+    await _videoController!.play();
+    notifyListeners();
+  }
+
+  Future<void> pause() async {
+    await _videoController!.pause();
+    notifyListeners();
   }
 }

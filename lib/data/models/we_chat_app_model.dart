@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:we_chat_app/data/vos/chat_history_vo.dart';
+import 'package:we_chat_app/data/vos/chat_message_vo.dart';
 import 'package:we_chat_app/data/vos/moment_vo.dart';
 import 'package:we_chat_app/data/vos/otp_code_vo.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
@@ -19,5 +21,16 @@ abstract class WeChatAppModel{
 
   Future<void> saveBookmark(UserVO userVO,MomentVO newMoment);
 
+  Future<void> saveQRScanUserVO(String loginUserVOId,String scanUserVOId);
+
+
+  Stream<List<UserVO>> getContactList(String userVOId);
+
+  Future<void> sendMessage(String senderId, String receiverId, String sendMsg,
+      String senderName, String sendMsgFileUrl, String profileUrl,String timestamp);
+
+
+  Stream<List<ChatMessageVO>> getChatMessageList(String loginUserId,String receiverId);
+  Stream<List<ChatHistoryVO>> getChatHistoryList(String loginUserId);
 
 }

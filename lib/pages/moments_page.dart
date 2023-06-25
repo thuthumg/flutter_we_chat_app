@@ -14,13 +14,6 @@ class MomentsPage extends StatelessWidget{
 
  // final UserVO? userVO;
 
-  // final List<String> items = [
-  //   'Item 1',
-  //   'Item 2',
-  //   'Item 3',
-  //   'Item 4',
-  //   'Item 5',
-  // ];
 
   MomentsPage({super.key});
 

@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:we_chat_app/blocs/create_moment_page_bloc.dart';
 import 'package:we_chat_app/blocs/video_controller_bloc.dart';
+import 'package:we_chat_app/pages/error_alert_box_view.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 import 'package:we_chat_app/widgets/custom_button_widget.dart';
@@ -16,6 +17,7 @@ import 'package:video_player/video_player.dart';
 
 class CreateMomentPage extends StatelessWidget {
   CreateMomentPage({super.key});
+
   FileType getFileTypeFromPath(String? path) {
     String? extension = path?.split('.').last.toLowerCase();
     if (extension == 'mp4' || extension == 'mov') {
@@ -42,36 +44,17 @@ class CreateMomentPage extends StatelessWidget {
         debugPrint("hasvideo");
         filePaths = [result.paths.last];
         fileTypes = [getFileTypeFromPath(result.paths.last)];
-
+        bloc.initVideo(filePaths.last!);
       }
 
       bloc.onImageChosen(filePaths);
-    //  bloc.onImageChosen(result.paths); //???
 
-      // setState(() {
-      //   result.paths.forEach((element) {
-      //     _selectedImages.add(File(element!));
-      //   });
-      // });???
     }
 
-    /* if (result != null) {
-      List<File> files = result.paths.map((path) => File(path)).toList();
-    } else {
-      // User canceled the picker
-    }*/
 
-    /*List<XFile>? images =
-        await ImagePicker().pickMultiImage(); // Use pickMultiImage function
-
-    if (images != null) {
-      setState(() {
-        images.forEach((element) {
-          _selectedImages.add(File(element.path));
-        });
-      });
-    }*/
   }
+
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -95,6 +78,7 @@ class CreateMomentPage extends StatelessWidget {
                             createMomentPageBloc: bloc
                         )),
                   ),
+
                   Spacer(),
                   ///choose image or video section
                   Padding(
@@ -132,14 +116,37 @@ class CreateMomentPage extends StatelessWidget {
                               ),
                             ):
                             (checkFileType(bloc.selectedImages[index].toString()) == 'Video') ?
-                            AspectRatio(
-                            aspectRatio: 1,
-                            child: Container(
-                                width: 100,
-                                height: 100,
-                                child:
-                                VideoPlayer(VideoPlayerController.file(File(bloc.selectedImages[index].toString())))),
-                          ):
+                            GestureDetector(
+                              onTap: (){
+                                bloc.videoController!.value.isPlaying
+                                    ? bloc.pause()
+                                    : bloc.play();
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),
+                                child: AspectRatio(
+                                  aspectRatio: 2/3,
+                                  child: bloc.videoController != null ?
+                                  Stack(
+                                    children: [
+                                      VideoPlayer(
+                                        bloc.videoController!,
+                                      ),
+                                      Center(
+                                        child: Icon(
+                                          bloc.videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                                          color: Colors.white,
+                                          size: 50,
+                                        ),
+                                      )
+                                    ],
+                                  ) : const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                ),
+                              ),
+                            )
+                                :
                             ClipRRect(
                               borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),
                               child: Image.file(
@@ -310,11 +317,41 @@ class CreateMomentBtnView extends StatelessWidget {
         buttonWidth: 70,
         onTapButton: () {
           //to save data at firebase
-          createMomentPageBloc.onTapAddNewMoment().then((value) => Navigator.pop(context));
+          createMomentPageBloc.onTapAddNewMoment().then((value) => Navigator.pop(context))
+              .catchError((error){
+
+            showDialog(
+                context: context,
+                builder: (BuildContext context) =>
+                    _buildPopupDialog(context));
+          });
+          // if(createMomentPageBloc.isAddNewMomentError)
+          //   {
+          //     showDialog(
+          //         context: context,
+          //         builder: (BuildContext context) =>
+          //             _buildPopupDialog(context));
+          //
+          //   }else{
+          //   createMomentPageBloc.onTapAddNewMoment().then((value) => Navigator.pop(context))
+          //   .catchError((error){
+          //     showDialog(
+          //         context: context,
+          //         builder: (BuildContext context) =>
+          //             _buildPopupDialog(context));
+          //   });
+          // }
+
+
+
 
         },
       ),
     );
+  }
+
+  _buildPopupDialog(BuildContext context) {
+    return ErrorAlertBoxView(messageStr: "Post should not be empty" );
   }
 }
 
@@ -446,7 +483,6 @@ class ChooseImageOrVideoGridSectionView extends StatelessWidget {
   }
 }
 
-
 class SelectedImageView extends StatelessWidget {
   final int index;
   List<dynamic> selectedImageList;
@@ -520,6 +556,28 @@ class CloseBtnView extends StatelessWidget {
           child: const Icon(
             Icons.close,
             color: Colors.black,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class PostDescriptionErrorSection extends StatelessWidget {
+  const PostDescriptionErrorSection({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<CreateMomentPageBloc>(
+      builder: (context, bloc, child) => Visibility(
+        visible: bloc.isAddNewMomentError,
+        child: Container(
+          child: Text(
+            "Post should not be empty",
+            style: TextStyle(
+                color: Colors.red, fontSize: 12, fontWeight: FontWeight.w500),
           ),
         ),
       ),

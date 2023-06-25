@@ -21,7 +21,6 @@ class CreateGroupContactsPage extends StatelessWidget{
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: MARGIN_CARD_MEDIUM_2),
               child: EditTextWidget(
@@ -41,9 +40,6 @@ class CreateGroupContactsPage extends StatelessWidget{
           Expanded(
             child: Stack(
               children: [
-
-
-
                 SingleChildScrollView(child:
                 ContactNameFirstCharacterGroupContactListView()),
                 Positioned(
@@ -88,7 +84,7 @@ class _ContactNameFirstCharacterGroupContactListViewState extends State<ContactN
           final secondListViewItemCount =
           3; // Replace with your actual item count
           return ContactNameFirstCharacterGroupEachViewItem(
-            secondListViewItemCount: secondListViewItemCount,
+            secondListViewItem: null,
             firstCharacterGroupName: "A",
           isCreateGroup: true,
           onTapCheckbox: (selectedCheck){
@@ -98,6 +94,10 @@ class _ContactNameFirstCharacterGroupContactListViewState extends State<ContactN
               });
           },
             selectedCheck: selectedContact,
+            onTapContact: (userVO)
+            {
+              //?
+            },
           );
         },
       ),

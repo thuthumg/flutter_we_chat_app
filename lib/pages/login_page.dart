@@ -153,7 +153,7 @@ class LoginSectionView extends StatelessWidget {
         buttonWidth: 150,
         onTapButton: () {
           bloc.onTapLogin().then((value){
-            navigateToScreen(context, HomePage(),false);
+            navigateToScreen(context, HomePage(navigateIndex: 0,),false);
           });
 
         },

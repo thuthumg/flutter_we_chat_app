@@ -15,7 +15,7 @@ const usersCollection = "users";
 const bookMarkedListCollection = "bookMarkedList";
 const fileUploadRef = "uploads";
 const momentsCollection = "moments";
-
+const contactsCollection = "contacts";
 
 class CloudFirestoreDataAgentImpl extends WeChatAppDataAgent{
 
@@ -75,7 +75,7 @@ class CloudFirestoreDataAgentImpl extends WeChatAppDataAgent{
   Future<String> uploadFileToFirebase(File image) {
     return firebaseStorage
         .ref(fileUploadRef)
-        .child("${DateTime.now().microsecondsSinceEpoch}")
+        .child("${DateTime.now().millisecondsSinceEpoch}")
         .putFile(image)
         .then((taskSnapshot) => taskSnapshot.ref.getDownloadURL());
   }
@@ -142,20 +142,36 @@ class CloudFirestoreDataAgentImpl extends WeChatAppDataAgent{
         .doc(newMoment.id.toString())
         .set(newMoment.toJson());
   }
-
   @override
-  Future<String> multiUploadFileToFirebase(List<File> imagesOrVideos) {
+  Future<String> multiUploadFileToFirebase(List<File> imagesOrVideos) async {
     List<String> strImagesOrVideos = [];
-    imagesOrVideos.forEach((element) async {
-      strImagesOrVideos.add(await firebaseStorage
-          .ref(fileUploadRef)
-          .child("${DateTime.now().microsecondsSinceEpoch}")
-          .putFile(element)
-          .then((taskSnapshot) => taskSnapshot.ref.getDownloadURL()));
-    });
-    return Future.value(strImagesOrVideos.join(","));
 
+    for (var element in imagesOrVideos) {
+      var taskSnapshot = await firebaseStorage
+          .ref(fileUploadRef)
+          .child("${DateTime.now().millisecondsSinceEpoch}")
+          .putFile(element);
+
+      var downloadURL = await taskSnapshot.ref.getDownloadURL();
+      strImagesOrVideos.add(downloadURL);
+    }
+
+    return strImagesOrVideos.join(",");
   }
+  // @override
+  // Future<String> multiUploadFileToFirebase(List<File> imagesOrVideos) {
+  //   List<String> strImagesOrVideos = [];
+  //   imagesOrVideos.forEach((element) async {
+  //     strImagesOrVideos.add(await firebaseStorage
+  //         .ref(fileUploadRef)
+  //         .child("${DateTime.now().microsecondsSinceEpoch}")
+  //         .putFile(element)
+  //         .then((taskSnapshot) => taskSnapshot.ref.getDownloadURL()));
+  //   });
+  //
+  //   return Future.value(strImagesOrVideos.join(","));
+  //
+  // }
 
   @override
   Stream<List<MomentVO>> getMomentsList() {
@@ -251,4 +267,44 @@ class CloudFirestoreDataAgentImpl extends WeChatAppDataAgent{
         .doc(newMoment.id.toString())
         .set(newMoment.toJson());
   }
+
+  @override
+  Future<void> saveQRScanUserVO(String loginUserVOId, String scanUserVOId) async {
+        UserVO loginUserVO = await  getUserVOById(loginUserVOId).first;
+        UserVO scanUserVO = await getUserVOById(scanUserVOId).first;
+
+        final CollectionReference parentCollection = _firestore.collection(usersCollection);
+        final DocumentReference parentDocument = parentCollection.doc(loginUserVO.id.toString());
+       // await parentDocument.set(loginUserVO.toJson());
+        final CollectionReference subCollection = parentDocument.collection(contactsCollection);
+        final DocumentReference newDocument = subCollection.doc(scanUserVO.id);
+        await newDocument.set(scanUserVO.toJson());
+
+        final CollectionReference qr_generate_parentCollection = _firestore.collection(usersCollection);
+        final DocumentReference qr_generate_parentDocument = qr_generate_parentCollection.doc(scanUserVO.id.toString());
+        // await parentDocument.set(loginUserVO.toJson());
+        final CollectionReference qr_generate_subCollection = qr_generate_parentDocument.collection(contactsCollection);
+        final DocumentReference qr_generate_newDocument = qr_generate_subCollection.doc(loginUserVO.id);
+        await qr_generate_newDocument.set(loginUserVO.toJson());
+
+  }
+
+  @override
+  Stream<List<UserVO>> getContactList(String userVOId) {
+    final CollectionReference parentCollection = _firestore.collection(usersCollection);
+    final DocumentReference parentDocument = parentCollection.doc(userVOId);
+    final CollectionReference subCollection = parentDocument.collection(contactsCollection);
+
+    return subCollection.snapshots().map<List<UserVO>>((querySnapshot) {
+      return querySnapshot.docs.map<UserVO>((document) {
+        return UserVO.fromJson(document.data() as Map<String, dynamic>);
+      }).toList();
+    }).handleError((error) {
+      print("Error retrieving moments list: $error");
+      return []; // Return an empty list in case of an error
+    });
+
+  }
+
+
 }

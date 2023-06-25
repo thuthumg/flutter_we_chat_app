@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:we_chat_app/components/profile_img_with_active_status_view.dart';
+import 'package:we_chat_app/data/vos/chat_history_vo.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 
 class EachChatHistoryViewItem extends StatelessWidget{
 
-  final Function onTapEachChat;
+  final Function(ChatHistoryVO) onTapEachChat;
 
-  const EachChatHistoryViewItem({super.key,required this.onTapEachChat});
+  final ChatHistoryVO chatHistoryVO;
+
+  const EachChatHistoryViewItem({super.key,
+    required this.onTapEachChat,
+  required this.chatHistoryVO});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: (){
         debugPrint("check action 3");
-        onTapEachChat();
+        onTapEachChat(chatHistoryVO);
       },
       child: Container(
         margin: const EdgeInsets.only(
@@ -28,8 +33,8 @@ class EachChatHistoryViewItem extends StatelessWidget{
           borderRadius: BorderRadius.circular(MARGIN_MEDIUM),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 2,
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 1,
               blurRadius: 5,
               offset: Offset(0, 3), // changes the position of the shadow
             ),
@@ -43,12 +48,12 @@ class EachChatHistoryViewItem extends StatelessWidget{
            // mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children:  const [
+            children:  [
               ///chat history profile and chat msg section
-              ChatHistoryProfileAndChatMsgView(),
+              ChatHistoryProfileAndChatMsgView(chatHistoryVO: chatHistoryVO),
 
               ///chat msg status
-              ChatMsgHistoryTimeAndStatusView(),
+              ChatMsgHistoryTimeAndStatusView(chatHistoryVO: chatHistoryVO),
 
             ],
           ),
@@ -60,18 +65,22 @@ class EachChatHistoryViewItem extends StatelessWidget{
 }
 
 class ChatHistoryProfileAndChatMsgView extends StatelessWidget {
+
+  final ChatHistoryVO chatHistoryVO;
+
   const ChatHistoryProfileAndChatMsgView({
     super.key,
+    required this.chatHistoryVO
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
-      children: const [
-       ProfileImgWithActiveStatusView(),
+      children: [
+       ProfileImgWithActiveStatusView(chatUserProfile: chatHistoryVO.chatUserProfileUrl??"",),
         SizedBox(width: MARGIN_MEDIUM,),
-        ChatUserNameAndChatLastMsgView(),
+        ChatUserNameAndChatLastMsgView(chatHistoryVO:chatHistoryVO),
       ],
     );
   }
@@ -91,8 +100,12 @@ class ChatHistoryProfileImageView extends StatelessWidget {
 }
 
 class ChatMsgHistoryTimeAndStatusView extends StatelessWidget {
+
+  final ChatHistoryVO chatHistoryVO;
+
   const ChatMsgHistoryTimeAndStatusView({
     super.key,
+    required this.chatHistoryVO
   });
 
   @override
@@ -104,7 +117,7 @@ class ChatMsgHistoryTimeAndStatusView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            '5min',
+            chatHistoryVO.chatTime??"",
             style: TextStyle(
               fontSize: TEXT_SMALL,
               color: Color.fromRGBO(17, 58, 93, 1),
@@ -120,8 +133,12 @@ class ChatMsgHistoryTimeAndStatusView extends StatelessWidget {
 }
 
 class ChatUserNameAndChatLastMsgView extends StatelessWidget {
+
+  final ChatHistoryVO chatHistoryVO;
+
   const ChatUserNameAndChatLastMsgView({
     super.key,
+    required this.chatHistoryVO
   });
 
   @override
@@ -131,8 +148,8 @@ class ChatUserNameAndChatLastMsgView extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'May Thu Hein',
-          style: TextStyle(
+          chatHistoryVO.chatUserName??"",
+          style: const TextStyle(
             fontSize: TEXT_REGULAR_1X,
             color: Color.fromRGBO(17, 58, 93, 1),
             fontWeight: FontWeight.w400,
@@ -140,8 +157,8 @@ class ChatUserNameAndChatLastMsgView extends StatelessWidget {
         ),
         SizedBox(height: MARGIN_SMALL,),
         Text(
-          'Hello',
-          style: TextStyle(
+          chatHistoryVO.chatMsg??"",
+          style: const TextStyle(
             fontSize: TEXT_REGULAR,
             color: TEXT_FIELD_HINT_TXT_COLOR,
             fontWeight: FontWeight.w400,

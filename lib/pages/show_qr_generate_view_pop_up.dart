@@ -4,6 +4,11 @@ import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 
 class ShowQRGenerateViewPopUp extends StatelessWidget{
+
+  String qrString;
+
+  ShowQRGenerateViewPopUp({required this.qrString});
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -18,10 +23,7 @@ class ShowQRGenerateViewPopUp extends StatelessWidget{
       content:  Container(
           width: 200,
           height: 200,
-          child: Center(child: QRSectionView(qrStr: "www.google.com",qrSize:200.0,isPopupQR: true,))),
-      actions: [
-        ///Sign Up button click section
-      ],
+          child: Center(child: QRSectionView(qrStr: "${qrString}",qrSize:200.0,isPopupQR: true,),),),
     );
   }
 

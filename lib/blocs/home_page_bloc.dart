@@ -15,9 +15,12 @@ class HomePageBloc extends ChangeNotifier{
   ///State
   bool isDisposed = false;
   bool isLoading = false;
+  int selectedIndex = 0;
+
+  HomePageBloc(int navigateIndex){
 
 
-  HomePageBloc(){
+    onTapSelectedIndex(navigateIndex);
 
     _mWeChatAppModel.getUserVOById(
         _authenticationModel.getLoggedInUser().id ?? "")
@@ -30,7 +33,10 @@ class HomePageBloc extends ChangeNotifier{
 
   }
 
-
+  void onTapSelectedIndex(int selectIndex){
+    selectedIndex = selectIndex;
+    _notifySafely();
+  }
 
   void _showLoading(){
     debugPrint("check isLoading before flag $isLoading");

@@ -3,6 +3,7 @@ import 'package:we_chat_app/data/vos/moment_vo.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 import 'package:we_chat_app/utils/constants.dart';
+import 'package:we_chat_app/viewitems/each_image_or_video_view_item.dart';
 
 class EachMomentViewItem extends StatelessWidget {
   final MomentVO? mMomentVO;
@@ -44,6 +45,11 @@ class EachMomentViewItem extends StatelessWidget {
         ),
         SizedBox(height: MARGIN_MEDIUM,),
 
+        Divider(height: 1,color: TEXT_FIELD_HINT_TXT_COLOR,),
+
+        SizedBox(height: MARGIN_MEDIUM,),
+
+
       ],
     );
   }
@@ -71,15 +77,15 @@ class LikeCommentSaveActionSectionView extends StatelessWidget {
 
 
     return Padding(
-      padding: const EdgeInsets.only(left: MARGIN_CARD_MEDIUM_2,
+      padding: const EdgeInsets.only(left: MARGIN_MEDIUM_2,
       right: MARGIN_CARD_MEDIUM_2,
       bottom: MARGIN_CARD_MEDIUM_2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
          const LikeActionView(
-           likeCount: "2",
-           isSelected: true,
+           likeCount: "0",
+           isSelected: false,
          ),
           Row(
             children: [
@@ -161,17 +167,20 @@ class DescriptionTextSectionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        TextDescView(mMomentVO: mMomentVO),
-        Visibility(
-            visible:  (mMomentVO?.photoOrVideoUrlLink == null || mMomentVO?.photoOrVideoUrlLink?.length == 0)? false : true ,
-            child:  ImageDescView(mMomentVO:mMomentVO))
+    return Padding(
+      padding: const EdgeInsets.only(left: MARGIN_CARD_MEDIUM_2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          TextDescView(mMomentVO: mMomentVO),
+          Visibility(
+              visible:  (mMomentVO?.photoOrVideoUrlLink == null || mMomentVO?.photoOrVideoUrlLink?.length == 0)? false : true ,
+              child:  ImageDescView(mMomentVO:mMomentVO))
 
 
-      ],
+        ],
+      ),
     );
   }
 }
@@ -186,36 +195,34 @@ class ImageDescView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    List<String>? photoOrVideoList = mMomentVO?.photoOrVideoUrlLink?.split(",");
+
     return Container(
       margin: const EdgeInsets.only(left: MARGIN_SMALL),
       width: MediaQuery.of(context).size.width,
       height: 200,
-      child: ListView.builder(
+      child:
+      (photoOrVideoList?.length == 1)?
+      ClipRRect(
+        borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+        child:
+        Image.network(
+          photoOrVideoList?[0]??"",
+          fit: BoxFit.cover,
+        ),
+        // Image.asset(
+        //   'assets/moments/background_sample.jpg',
+        //   fit: BoxFit.cover,
+        // ),
+      ):
+      ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: 5,
+        itemCount: photoOrVideoList?.length,
         itemBuilder: (context, index) {
-          return  Container(
-            width: MOMENT_DESC_IMAGE_WIDTH,
-            height: MOMENT_DESC_IMAGE_HEIGHT,
-            margin: const EdgeInsets.all( MARGIN_MEDIUM),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-            ),
-            child:
-            (mMomentVO?.photoOrVideoUrlLink == null || mMomentVO?.photoOrVideoUrlLink == "")?
-                Container():
-            ClipRRect(
-              borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-              child:
-              Image.network(
-               mMomentVO?.photoOrVideoUrlLink.toString()??"",
-                fit: BoxFit.cover,
-              ),
-              // Image.asset(
-              //   'assets/moments/background_sample.jpg',
-              //   fit: BoxFit.cover,
-              // ),
-            ),
+          return
+            EachImageOrVideoViewItem(
+              imageOrVideoLink: photoOrVideoList?[index],
           );
 
         },

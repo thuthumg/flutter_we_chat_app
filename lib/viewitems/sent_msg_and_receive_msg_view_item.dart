@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:we_chat_app/components/profile_img_with_active_status_view.dart';
+import 'package:we_chat_app/data/vos/chat_message_vo.dart';
+import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/pages/chat_detail_page.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 
 class SentMsgAndReceiveMsgViewItem extends StatelessWidget {
-  final ChatMessage msgItem;
+  final ChatMessageVO msgItem;
+  final UserVO? loginUserVO;
 
-  const SentMsgAndReceiveMsgViewItem({super.key, required this.msgItem});
+  const SentMsgAndReceiveMsgViewItem({super.key,
+    required this.msgItem,
+  required this.loginUserVO});
 
   @override
   Widget build(BuildContext context) {
-    return (msgItem.isSent)
+
+    debugPrint("check send msg id ${loginUserVO?.id} ------ ${msgItem.userId}");
+
+    return (loginUserVO?.id == msgItem.userId)
         ? SentMsgSectionView(msgItem: msgItem)
         : ReceiveMsgSectionView(msgItem: msgItem);
 
@@ -24,7 +33,7 @@ class ReceiveMsgSectionView extends StatelessWidget {
     required this.msgItem,
   });
 
-  final ChatMessage msgItem;
+  final ChatMessageVO msgItem;
 
   @override
   Widget build(BuildContext context) {
@@ -40,16 +49,20 @@ class ReceiveMsgSectionView extends StatelessWidget {
                   top: MARGIN_CARD_MEDIUM_2,
                   bottom: MARGIN_CARD_MEDIUM_2,
                   right: MARGIN_CARD_MEDIUM_2),
-              child: ProfileImgWithActiveStatusView(),
+              child: ProfileImgWithActiveStatusView(chatUserProfile: '',),
             ),
             Column(
 
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ReceiveTextMsgView(msgItem: msgItem),
+                Visibility(
+                    visible: (msgItem.message == "")? false: true,
+                    child: ReceiveTextMsgView(msgItem: msgItem)),
 
                 SizedBox(height: MARGIN_MEDIUM,),
-                ReceiveImgOrVideoMsgView(),
+                Visibility(
+                    visible: (msgItem.file == "")? false: true,
+                    child: ReceiveImgOrVideoMsgView(msgItem: msgItem)),
               ],
             ),
           ],
@@ -61,8 +74,9 @@ class ReceiveMsgSectionView extends StatelessWidget {
 class ReceiveImgOrVideoMsgView extends StatelessWidget {
   const ReceiveImgOrVideoMsgView({
     super.key,
+    required this.msgItem
   });
-
+  final ChatMessageVO msgItem;
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -79,7 +93,7 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
             child: Image.asset(
-              'assets/moments/background_sample.jpg',
+              msgItem.file??"",
               fit: BoxFit.cover,
             ),
           ),
@@ -104,30 +118,35 @@ class ReceiveTextMsgView extends StatelessWidget {
     required this.msgItem,
   });
 
-  final ChatMessage msgItem;
+  final ChatMessageVO msgItem;
 
   @override
   Widget build(BuildContext context) {
+    DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
+    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
+    String dateString = dateFormat.format(dateTime);
+
+
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Color.fromRGBO(243, 243, 243, 1),
+        color: const Color.fromRGBO(243, 243, 243, 1),
         borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            msgItem.message,
-            style: TextStyle(
+            msgItem.message??"",
+            style: const TextStyle(
               color: SECONDARY_COLOR,
               fontSize: 16,
             ),
           ),
-          SizedBox(height: MARGIN_MEDIUM,),
+          const SizedBox(height: MARGIN_MEDIUM,),
           Text(
-            '12:30AM',
-            style: TextStyle(
+            dateString,
+            style: const TextStyle(
               fontSize: TEXT_XSMALL,
               color:TEXT_FIELD_HINT_TXT_COLOR,
               fontWeight: FontWeight.w400,
@@ -145,19 +164,24 @@ class SentMsgSectionView extends StatelessWidget {
     required this.msgItem,
   });
 
-  final ChatMessage msgItem;
+  final ChatMessageVO msgItem;
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("check send msg ${msgItem.message}");
     return Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         alignment: Alignment.centerRight,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            TextMsgView(msgItem: msgItem),
+            Visibility(
+                visible: (msgItem.message == "")? false: true,
+                child:  TextMsgView(msgItem: msgItem),),
             const SizedBox(height: MARGIN_MEDIUM,),
-            ImageOrVideoMsgView(),
+            Visibility(
+                visible: (msgItem.file == "")? false: true,
+                child: ImageOrVideoMsgView(msgItem: msgItem)),
           ],
         ),
       );
@@ -167,7 +191,9 @@ class SentMsgSectionView extends StatelessWidget {
 class ImageOrVideoMsgView extends StatelessWidget {
   const ImageOrVideoMsgView({
     super.key,
+    required this.msgItem
   });
+  final ChatMessageVO msgItem;
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +210,7 @@ class ImageOrVideoMsgView extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
             child: Image.asset(
-              'assets/moments/background_sample.jpg',
+              msgItem.file??"",
               fit: BoxFit.cover,
             ),
           ),
@@ -209,10 +235,16 @@ class TextMsgView extends StatelessWidget {
     required this.msgItem,
   });
 
-  final ChatMessage msgItem;
+  final ChatMessageVO msgItem;
 
   @override
   Widget build(BuildContext context) {
+
+    DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
+    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
+    String dateString = dateFormat.format(dateTime);
+
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -223,7 +255,7 @@ class TextMsgView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            msgItem.message,
+            msgItem.message??"",
             style: const TextStyle(
               color: Colors.white,
               fontSize: TEXT_REGULAR_1X,
@@ -233,9 +265,9 @@ class TextMsgView extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      '12:30AM',
-                      style: TextStyle(
+                    Text(
+                      dateString,
+                      style: const TextStyle(
                         fontSize: TEXT_XSMALL,
                         color: Colors.white,
                         fontWeight: FontWeight.w400,

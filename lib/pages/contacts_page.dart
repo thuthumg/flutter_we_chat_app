@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:we_chat_app/blocs/contacts_page_bloc.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/pages/chat_detail_page.dart';
 import 'package:we_chat_app/pages/create_group_contacts_page.dart';
@@ -6,7 +8,6 @@ import 'package:we_chat_app/pages/qr_scan_page.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 import 'package:we_chat_app/utils/extensions.dart';
-import 'package:we_chat_app/viewitems/each_contact_view_item.dart';
 import 'package:we_chat_app/viewitems/each_group_contact_view_item.dart';
 import 'package:we_chat_app/viewitems/name_first_character_group_group_each_view_item.dart';
 import 'package:we_chat_app/widgets/search_box_widget.dart';
@@ -19,20 +20,26 @@ class ContactsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CHAT_PAGE_BG_COLOR,
-      appBar: const ContactsCustomAppBar(),
-      body: SizedBox(
-        height: MediaQuery.of(context).size.height,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ///Search contact section view
-            SearchBoxWidget(
-              onSearch: (searchText) {},
+    return ChangeNotifierProvider(
+      create: (context) => ContactsPageBloc(),
+      child: Consumer<ContactsPageBloc>(
+        builder: (context, bloc, child) => Scaffold(
+          backgroundColor: CHAT_PAGE_BG_COLOR,
+          appBar: ContactsCustomAppBar(contactsPageBloc: bloc),
+          body: SizedBox(
+            height: MediaQuery.of(context).size.height,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ///Search contact section view
+                SearchBoxWidget(
+                  onSearch: (searchText) {},
+                ),
+                Expanded(child: GroupSectionAndContactsListView(
+                    contactsPageBloc: bloc)),
+              ],
             ),
-            const Expanded(child: GroupSectionAndContactsListView()),
-          ],
+          ),
         ),
       ),
     );
@@ -44,8 +51,11 @@ class ContactsCustomAppBar extends StatelessWidget
   @override
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
 
-  const ContactsCustomAppBar({
+  ContactsPageBloc contactsPageBloc;
+
+  ContactsCustomAppBar({
     super.key,
+    required this.contactsPageBloc
   });
 
   @override
@@ -55,17 +65,17 @@ class ContactsCustomAppBar extends StatelessWidget
       automaticallyImplyLeading: false,
       title: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
-        children: const [
-          ContactTitleTextView(),
+        children: [
+          const ContactTitleTextView(),
           ContactsTotalCountView(
-            contactCount: 0,
+            contactCount: contactsPageBloc.userMap.length,
           ),
         ],
       ),
       actions: [
         ContactAddView(
           onTapAddContact: () {
-            navigateToScreen(context, QRScanPage(),false);
+            navigateToScreen(context, QRScanPage(contactsPageBloc:contactsPageBloc),false);
           },
         )
       ],
@@ -131,8 +141,12 @@ class ContactsTotalCountView extends StatelessWidget {
 }
 
 class GroupSectionAndContactsListView extends StatelessWidget {
+
+  final ContactsPageBloc contactsPageBloc;
+
   const GroupSectionAndContactsListView({
     super.key,
+    required this.contactsPageBloc
   });
 
   @override
@@ -154,7 +168,8 @@ class GroupSectionAndContactsListView extends StatelessWidget {
               child: Stack(
                 children: [
                   SingleChildScrollView(child:
-                  ContactNameFirstCharacterGroupContactListView()),
+                  ContactNameFirstCharacterGroupContactListView(
+                      contactsPageBloc: contactsPageBloc)),
                   Positioned(
                     right:0,
                     child: Image.asset('assets/contacts/contacts_letter_view_pic.png'),
@@ -171,8 +186,12 @@ class GroupSectionAndContactsListView extends StatelessWidget {
 }
 
 class ContactNameFirstCharacterGroupContactListView extends StatelessWidget {
+
+  final ContactsPageBloc contactsPageBloc;
+
   const ContactNameFirstCharacterGroupContactListView({
     super.key,
+    required this.contactsPageBloc
   });
 
   @override
@@ -182,16 +201,27 @@ class ContactNameFirstCharacterGroupContactListView extends StatelessWidget {
       child: ListView.builder(
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
-        itemCount: 3, // Only one item to display
+        itemCount: contactsPageBloc.userMap.length, // Only one item to display
         itemBuilder: (BuildContext context, int index) {
-          final secondListViewItemCount =
-              5; // Replace with your actual item count
+
+          String group = contactsPageBloc.userMap.keys.elementAt(index);
+          List<UserVO>? users = contactsPageBloc.userMap[group];
+
           return ContactNameFirstCharacterGroupEachViewItem(
-              secondListViewItemCount: secondListViewItemCount,
-          firstCharacterGroupName: "A",
+              secondListViewItem: users,
+          firstCharacterGroupName: group,
           isCreateGroup: false,
           onTapCheckbox: (selectedCheck){},
-          selectedCheck: false,);
+          selectedCheck: false,
+          onTapContact: (contactUserVO){
+            navigateToScreen(context, ChatDetailPage(
+              chatUserProfile: contactUserVO?.profileUrl??"",
+              chatUserName: contactUserVO?.userName??"",
+              chatUserId: contactUserVO?.id??"",
+              isGroupChat: false,
+            ),false);
+          }
+          );
         },
       ),
     );
@@ -262,7 +292,12 @@ class GroupContactsListView extends StatelessWidget {
                 navigateToScreen(context, CreateGroupContactsPage(),false);
               },
               onTapEachGroup: () {
-                navigateToScreen(context, ChatDetailPage(),false);
+                navigateToScreen(context,  ChatDetailPage(
+                  chatUserProfile: "",
+                  chatUserName: "",
+                  chatUserId:"",
+                  isGroupChat: true,
+                ),false);
               },
             );
           }),

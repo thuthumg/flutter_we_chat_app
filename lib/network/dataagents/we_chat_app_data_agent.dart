@@ -30,5 +30,9 @@ abstract class WeChatAppDataAgent{
   Stream<List<MomentVO>> getMomentsList();
   Stream<List<MomentVO>> getMomentsListByUserId(String userVOId);
 
+  ///get user object
+  Future<void> saveQRScanUserVO(String loginUserVOId,String scanUserVOId);
+
+  Stream<List<UserVO>> getContactList(String userVOId);
 
 }

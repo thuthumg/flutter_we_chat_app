@@ -104,7 +104,7 @@ class GroupImageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 50,
+      width: (firstItemIndex == 0)? 40 :50,
       height: 45,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
@@ -115,7 +115,7 @@ class GroupImageView extends StatelessWidget {
         Image.asset(
           'assets/contacts/group_add_icon.png',
           fit: BoxFit.cover,
-          scale: 3,
+         // scale: 5,
         ):
         Image.asset(
           'assets/moments/background_sample.jpg',

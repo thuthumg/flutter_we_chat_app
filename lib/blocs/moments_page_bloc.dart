@@ -23,18 +23,19 @@ class MomentsPageBloc extends ChangeNotifier{
     _mWeChatAppModel.getUserVOById(
         _authenticationModel.getLoggedInUser().id ?? "")
         .listen((userObj) {
-
       userVO = userObj;
       debugPrint("check otp list in bloc ${userVO?.userName}");
+      _mWeChatAppModel.getMomentsList().listen((momentsList) {
+        mMomentsList = momentsList;
+        mMomentsList?.sort((a, b) => (b.id??"").compareTo(a.id??""));
+        _hideLoading();
+        _notifySafely();
+      });
 
-      _hideLoading();
       _notifySafely();
     });
 
-    _mWeChatAppModel.getMomentsList().listen((momentsList) {
-      mMomentsList = momentsList;
-      _notifySafely();
-    });
+
   }
 
   void saveBookMark(UserVO mUserVO,MomentVO mMomentVO){

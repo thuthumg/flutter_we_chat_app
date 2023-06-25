@@ -345,10 +345,9 @@ class ProfileShowProfileUploadAndQRGenerateView extends StatelessWidget {
     return Stack(
       children: [
     (bloc.profilePicture == "") ?
-        CircleAvatar(
+        const CircleAvatar(
           radius: 55,
           backgroundImage:
-
           AssetImage('assets/moments/profile_sample.jpg')
 
         ):
@@ -358,8 +357,7 @@ class ProfileShowProfileUploadAndQRGenerateView extends StatelessWidget {
 
         NetworkImage('${bloc.profilePicture}')
 
-    )
-        ,
+    ),
         Positioned(
           bottom: 0,
           left: 0,
@@ -377,7 +375,7 @@ class ProfileShowProfileUploadAndQRGenerateView extends StatelessWidget {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) =>
-                      _buildQRPopupDialog(context),
+                      _buildQRPopupDialog(context,bloc.userId),
                 );
               },
               child: QRSectionView(qrStr: "${bloc.userId}", qrSize: 55.0,isPopupQR: false,),
@@ -388,7 +386,7 @@ class ProfileShowProfileUploadAndQRGenerateView extends StatelessWidget {
     );
   }
 
-  Widget _buildQRPopupDialog(BuildContext context) {
-    return ShowQRGenerateViewPopUp();
+  Widget _buildQRPopupDialog(BuildContext context,String qrString) {
+    return ShowQRGenerateViewPopUp(qrString: qrString);
   }
 }

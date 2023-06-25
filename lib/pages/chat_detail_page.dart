@@ -1,84 +1,86 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:we_chat_app/blocs/chat_detail_page_bloc.dart';
 import 'package:we_chat_app/components/profile_img_with_active_status_view.dart';
+import 'package:we_chat_app/data/vos/chat_message_vo.dart';
+import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 import 'package:we_chat_app/viewitems/sent_msg_and_receive_msg_view_item.dart';
 
-class ChatMessage {
-  final String message;
-  final bool isSent;
+class ChatDetailPage extends StatelessWidget {
+  final String chatUserName;
+  final String chatUserId;
+  final String chatUserProfile;
+  final bool isGroupChat;
 
-  ChatMessage({required this.message, required this.isSent});
-}
-
-final List<ChatMessage> chatMessages = [
-  ChatMessage(message: 'Hello!', isSent: false),
-  ChatMessage(message: 'Hi there!', isSent: true),
-  ChatMessage(message: 'How are you?', isSent: false),
-  ChatMessage(message: "I'm good. How about you?", isSent: true),
-];
-
-class ChatDetailPage extends StatefulWidget {
-  @override
-  State<ChatDetailPage> createState() => _ChatDetailPageState();
-}
-
-class _ChatDetailPageState extends State<ChatDetailPage> {
-  TextEditingController _textEditingController = TextEditingController();
-  void _sendMessage() {
-    String messageText = _textEditingController.text.trim();
-    if (messageText.isNotEmpty) {
-      ChatMessage message = ChatMessage(message: messageText, isSent: true);
-      setState(() {
-        chatMessages.add(message);
-        _textEditingController.clear();
-      });
-    }
-  }
-
+  ChatDetailPage(
+      {required this.chatUserName,
+      required this.chatUserId,
+      required this.chatUserProfile,
+      required this.isGroupChat});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CHAT_PAGE_BG_COLOR,
-      appBar: CustomAppBarSectionView(),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return ChangeNotifierProvider(
+      create: (context) => ChatDetailPageBloc(chatUserId),
+      child: Consumer<ChatDetailPageBloc>(
+        builder: (context, bloc, child) => Scaffold(
+          backgroundColor: CHAT_PAGE_BG_COLOR,
+          appBar: CustomAppBarSectionView(
+              chatUserName: chatUserName, chatUserProfile: chatUserProfile),
+          body: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ///show chat msg (chat History time + Sent Msg +Receive Msg ) Section View
+              ChatMsgSectionView(
+                  loginUserVO:bloc.userVO,
+                  chatMessageList: bloc.chatMessageVOList
+              ),
 
-          ///show chat msg (chat History time + Sent Msg +Receive Msg ) Section View
-          ChatMsgSectionView(),
-
-          ///Type And Send Msg Section View
-          /// Media(photo,video) data, git data, location data and voice data Action Section View
-          Column(
-            children: const [
               ///Type And Send Msg Section View
-              SendMsgSectionView(),
-
               /// Media(photo,video) data, git data, location data and voice data Action Section View
-              ActionButtonSectionViewForSendMediaMsg(),
+              Column(
+                children: [
+                  ///Type And Send Msg Section View
+                  SendMsgSectionView(
+                      chatDetailPageBloc: bloc,
+                      onTapSendMessage: () {
+                    return bloc.onTapSendMessage(
+                        bloc.userVO?.id,
+                        chatUserId,
+                        bloc.typeMessageText,
+                        bloc.userVO?.userName,
+                        "",
+                        bloc.userVO?.profileUrl);
+                  }),
 
+                  /// Media(photo,video) data, git data, location data and voice data Action Section View
+                  ActionButtonSectionViewForSendMediaMsg(),
+                ],
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
 class ActionButtonSectionViewForSendMediaMsg extends StatefulWidget {
-
   const ActionButtonSectionViewForSendMediaMsg({
     super.key,
   });
 
   @override
-  State<ActionButtonSectionViewForSendMediaMsg> createState() => _ActionButtonSectionViewForSendMediaMsgState();
+  State<ActionButtonSectionViewForSendMediaMsg> createState() =>
+      _ActionButtonSectionViewForSendMediaMsgState();
 }
 
-class _ActionButtonSectionViewForSendMediaMsgState extends State<ActionButtonSectionViewForSendMediaMsg> {
+class _ActionButtonSectionViewForSendMediaMsgState
+    extends State<ActionButtonSectionViewForSendMediaMsg> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
@@ -97,8 +99,7 @@ class _ActionButtonSectionViewForSendMediaMsgState extends State<ActionButtonSec
             color: Colors.grey.withOpacity(0.5),
             spreadRadius: 2,
             blurRadius: 5,
-            offset:
-            Offset(0, 3), // changes the position of the shadow
+            offset: Offset(0, 3), // changes the position of the shadow
           ),
         ],
       ),
@@ -172,9 +173,11 @@ class _ActionButtonSectionViewForSendMediaMsgState extends State<ActionButtonSec
 }
 
 class SendMsgSectionView extends StatelessWidget {
-  const SendMsgSectionView({
-    super.key,
-  });
+  final Function onTapSendMessage;
+  final ChatDetailPageBloc chatDetailPageBloc;
+  const SendMsgSectionView({super.key,
+    required this.onTapSendMessage,
+  required this.chatDetailPageBloc});
 
   @override
   Widget build(BuildContext context) {
@@ -185,7 +188,9 @@ class SendMsgSectionView extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: TextEditingController(text: ''),
-              onChanged: (text) {},
+              onChanged: (text) {
+                chatDetailPageBloc.onTypeMessageTextChanged(text);
+              },
               decoration: const InputDecoration(
                 hintText: 'Type a message',
                 filled: true,
@@ -199,9 +204,14 @@ class SendMsgSectionView extends StatelessWidget {
               ),
             ),
           ),
-          Image.asset(
-            'assets/chat/send_btn_icon.png',
-            scale: 3,
+          GestureDetector(
+            onTap: () {
+              onTapSendMessage();
+            },
+            child: Image.asset(
+              'assets/chat/send_btn_icon.png',
+              scale: 3,
+            ),
           )
         ],
       ),
@@ -210,32 +220,44 @@ class SendMsgSectionView extends StatelessWidget {
 }
 
 class ChatMsgSectionView extends StatelessWidget {
-  const ChatMsgSectionView({
+  List<ChatMessageVO> chatMessageList;
+  UserVO? loginUserVO;
+
+   ChatMsgSectionView({
     super.key,
+     required this.chatMessageList,
+     required this.loginUserVO
   });
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("check chat message list2 =  ${chatMessageList.length}");
+
     return Expanded(
       child: ListView.builder(
         reverse: true,
         scrollDirection: Axis.vertical,
         // physics: NeverScrollableScrollPhysics(),
         // shrinkWrap: true,
-        itemCount: chatMessages.length,
+        itemCount: chatMessageList.length,
         itemBuilder: (context, index) {
-          ChatMessage message = chatMessages[index];
+          ChatMessageVO message = chatMessageList[index];
+
+          DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
+          DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(message.timestamp.toString()));
+          String dateString = dateFormat.format(dateTime);
+
           return Column(
-           // crossAxisAlignment: CrossAxisAlignment.start,
-          //  mainAxisAlignment: MainAxisAlignment.start,
+            // crossAxisAlignment: CrossAxisAlignment.start,
+            //  mainAxisAlignment: MainAxisAlignment.start,
             children: [
               ///Chat History Section Time
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(MARGIN_MEDIUM),
                   child: Text(
-                    'Today',
-                    style: TextStyle(
+                    dateString.toString(),
+                    style: const TextStyle(
                       fontSize: TEXT_REGULAR,
                       color: TEXT_FIELD_HINT_TXT_COLOR,
                       fontWeight: FontWeight.w400,
@@ -243,16 +265,15 @@ class ChatMsgSectionView extends StatelessWidget {
                   ),
                 ),
               ),
-                SizedBox(height: MARGIN_CARD_MEDIUM_2,),
-                SentMsgAndReceiveMsgViewItem(
+              SizedBox(
+                height: MARGIN_CARD_MEDIUM_2,
+              ),
+              SentMsgAndReceiveMsgViewItem(
+                loginUserVO: loginUserVO,
                 msgItem: message,
-          )
+              )
             ],
           );
-
-
-
-
         },
       ),
     );
@@ -261,9 +282,11 @@ class ChatMsgSectionView extends StatelessWidget {
 
 class CustomAppBarSectionView extends StatelessWidget
     implements PreferredSizeWidget {
-  const CustomAppBarSectionView({
-    super.key,
-  });
+  final String chatUserName;
+  final String chatUserProfile;
+
+  const CustomAppBarSectionView(
+      {super.key, required this.chatUserName, required this.chatUserProfile});
 
   @override
   Widget build(BuildContext context) {
@@ -287,9 +310,10 @@ class CustomAppBarSectionView extends StatelessWidget
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             ///Back button , chat profile pic , user name and status section
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: MARGIN_CARD_MEDIUM_2),
-              child: ChatDetailPageProfileAndStatusView(),
+              child: ChatDetailPageProfileAndStatusView(
+                  chatUserName: chatUserName, chatUserProfile: chatUserProfile),
             ),
 
             /// chat contextual  menu section
@@ -308,24 +332,26 @@ class CustomAppBarSectionView extends StatelessWidget
 }
 
 class ChatDetailPageProfileAndStatusView extends StatelessWidget {
-  const ChatDetailPageProfileAndStatusView({
-    super.key,
-  });
+  final String chatUserName;
+  final String chatUserProfile;
+
+  const ChatDetailPageProfileAndStatusView(
+      {super.key, required this.chatUserName, required this.chatUserProfile});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
-      children: const [
+      children: [
         ///Back Button View
         BackButtonView(),
 
         ///Chat Profile pic , user name and status
-        ProfileImgWithActiveStatusView(),
-        SizedBox(
+        ProfileImgWithActiveStatusView(chatUserProfile: chatUserProfile),
+        const SizedBox(
           width: MARGIN_MEDIUM,
         ),
-        ChatUserNameAndStatusView(),
+        ChatUserNameAndStatusView(chatUserName: chatUserName),
       ],
     );
   }
@@ -348,28 +374,28 @@ class BackButtonView extends StatelessWidget {
 }
 
 class ChatUserNameAndStatusView extends StatelessWidget {
-  const ChatUserNameAndStatusView({
-    super.key,
-  });
+  final String chatUserName;
+
+  const ChatUserNameAndStatusView({super.key, required this.chatUserName});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
-      children: const [
+      children: [
         Text(
-          'May Thu Hein',
-          style: TextStyle(
+          chatUserName,
+          style: const TextStyle(
             fontSize: TEXT_REGULAR_1X,
             color: Color.fromRGBO(17, 58, 93, 1),
             fontWeight: FontWeight.w400,
           ),
         ),
-        SizedBox(
+        const SizedBox(
           height: MARGIN_SMALL,
         ),
-        Text(
+        const Text(
           'online',
           style: TextStyle(
             fontSize: TEXT_REGULAR,

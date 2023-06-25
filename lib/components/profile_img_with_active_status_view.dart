@@ -2,31 +2,46 @@ import 'package:flutter/material.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 
 class ProfileImgWithActiveStatusView extends StatelessWidget {
+
+  final String chatUserProfile;
+
   const ProfileImgWithActiveStatusView({
     super.key,
+    required this.chatUserProfile
   });
 
   @override
   Widget build(BuildContext context) {
     return Stack(
-      children: const [
-        ActiveNowProfileImageView(),
-        ActiveNowProfileActiveStatusView(),
+      children: [
+        ActiveNowProfileImageView(
+            chatUserProfile: chatUserProfile),
+        const ActiveNowProfileActiveStatusView(),
       ],
     );
   }
 }
 class ActiveNowProfileImageView extends StatelessWidget {
+
+  final String chatUserProfile;
+
   const ActiveNowProfileImageView({
     super.key,
+    required this.chatUserProfile
   });
 
   @override
   Widget build(BuildContext context) {
-    return const CircleAvatar(
+    return
+      (chatUserProfile == "")?
+      const CircleAvatar(
       radius: ACTIVE_NOW_CHAT_ITEM_PROFILE_RADIUS,
       backgroundImage: AssetImage('assets/moments/profile_sample.jpg'),
-    );
+    ):
+      CircleAvatar(
+        radius: ACTIVE_NOW_CHAT_ITEM_PROFILE_RADIUS,
+        backgroundImage: NetworkImage(chatUserProfile),
+      ) ;
   }
 }
 
