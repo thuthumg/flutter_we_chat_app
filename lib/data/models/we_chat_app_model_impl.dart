@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:we_chat_app/data/models/authentication_model.dart';
 import 'package:we_chat_app/data/models/authentication_model_impl.dart';
 import 'package:we_chat_app/data/models/we_chat_app_model.dart';
+import 'package:we_chat_app/data/vos/chat_group_vo.dart';
 import 'package:we_chat_app/data/vos/chat_history_vo.dart';
 import 'package:we_chat_app/data/vos/chat_message_vo.dart';
 import 'package:we_chat_app/data/vos/moment_vo.dart';
@@ -73,8 +74,7 @@ class WeChatAppModelImpl extends WeChatAppModel {
         photoOrVideoUrlLink: downloadUrl,
         profileUrl: userVO?.profileUrl,
         timestamp: formattedDateTime,
-        likedIdList: [],
-        bookmarkedIdList: []);
+        likedIdList: []);
 
     // MomentVO(
     //     id: currentMilliseconds.toString(),
@@ -118,17 +118,73 @@ class WeChatAppModelImpl extends WeChatAppModel {
   }
 
   @override
-  Future<void> sendMessage(String senderId, String receiverId, String sendMsg, String senderName, String sendMsgFileUrl, String profileUrl, String timestamp) {
+  Future<void> sendMessage(String senderId, String receiverId, String sendMsg, String senderName, List<File> sendMsgFileUrl, String profileUrl, String timestamp) {
     return mRealTimeDataAgent.sendMessage(senderId, receiverId, sendMsg, senderName, sendMsgFileUrl, profileUrl, timestamp);
   }
 
   @override
-  Stream<List<ChatMessageVO>> getChatMessageList(String loginUserId,String receiverId) {
-    return mRealTimeDataAgent.getChatMessageList(loginUserId,receiverId);
+  Stream<List<ChatMessageVO>> getChatMessageList(String loginUserId,String receiverId,
+      bool isGroup) {
+    return mRealTimeDataAgent.getChatMessageList(loginUserId,receiverId,isGroup);
   }
 
   @override
   Stream<List<ChatHistoryVO>> getChatHistoryList(String loginUserId) {
     return mRealTimeDataAgent.getChatHistoryList(loginUserId);
+  }
+
+  @override
+  Future<void> createChatGroup(String groupName, List<String> membersList, File groupPhoto) {
+
+
+    if (groupPhoto != null) {
+      return mDataAgent
+          .uploadFileToFirebase(groupPhoto)
+          .then(
+              (downloadUrl) => craftChatGroupVO(groupName, membersList, downloadUrl))
+          .then((newChatGroup) => mRealTimeDataAgent.createChatGroup(newChatGroup));
+    } else {
+      return craftChatGroupVO(groupName, membersList, "")
+          .then((newChatGroup) => mRealTimeDataAgent.createChatGroup(newChatGroup));
+    }
+
+  //  return mRealTimeDataAgent.createChatGroup(groupName, membersList, groupPhoto);
+  }
+
+  Future<ChatGroupVO> craftChatGroupVO(
+  String groupName, List<String> membersList, String strGroupPhoto) {
+
+
+    final currentTimestamp = DateTime.now().millisecondsSinceEpoch.toString();
+
+    var newGroupChat = ChatGroupVO(
+        id: currentTimestamp,
+        name: groupName,
+        message: {},
+        membersList: membersList,
+        profileUrl: strGroupPhoto);
+
+
+    return Future.value(newGroupChat);
+  }
+
+  @override
+  Stream<List<ChatGroupVO>> getChatGroupsList(String loginUserId) {
+    debugPrint("getChatGroupsList model");
+   return mRealTimeDataAgent.getChatGroupsList(loginUserId);
+  }
+
+  @override
+  Future<void> sendGroupMessage(
+      String senderId,
+      String receiverId,
+      String sendMsg,
+      String senderName,
+      List<File> sendMsgFileUrl,
+      String profileUrl,
+      String timestamp) {
+    return mRealTimeDataAgent.sendGroupMessage(senderId,
+        receiverId, sendMsg, senderName, sendMsgFileUrl, profileUrl, timestamp);
+
   }
 }

@@ -235,18 +235,32 @@ class ProfileUploadSectionView extends StatelessWidget {
                   alignment: Alignment.center,
                   child:
                   (signUpPageBloc.chosenImageFile == null) ?
-                  const CircleAvatar(
-                    radius: 60,
-                    backgroundImage:
-                    AssetImage('assets/moments/profile_sample.jpg'),
-                  ) :
+
+                  Container(
+                    color: Colors.white,
+                    child: CircleAvatar(
+                      backgroundColor: SUMBITED_PIN_THEME_COLOR,
+                      radius: 50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Image.asset('assets/splash/logo.png'),
+                      ),
+                    ),
+                  ):
                   CircleAvatar(
-                    radius: 60,
+                    radius: 50,
                     backgroundImage: FileImage(
                         signUpPageBloc.chosenImageFile ?? File("")),
                   )
                   ,
+
+
                 ),
+                /*const CircleAvatar(
+                    radius: 60,
+                    backgroundImage:
+                    AssetImage('assets/moments/profile_sample.jpg'),
+                  ) :*/
                 Positioned(
                     top: 0,
                     bottom: 0,

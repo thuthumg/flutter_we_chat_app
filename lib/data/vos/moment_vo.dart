@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'moment_vo.g.dart';
@@ -28,8 +29,9 @@ class MomentVO {
   @JsonKey(name: "liked_id_list")
   List<String>? likedIdList;
 
-  @JsonKey(name: "bookmarked_id_list")
-  List<String>? bookmarkedIdList;
+
+  @JsonKey(name: "isUserBookMarkFlag")
+  bool isUserBookMarkFlag = false;
 
   MomentVO(
       {this.id,
@@ -39,8 +41,13 @@ class MomentVO {
       this.photoOrVideoUrlLink,
       this.profileUrl,
       this.timestamp,
-      this.likedIdList,
-      this.bookmarkedIdList});
+      this.likedIdList});
+
+
+  @override
+  String toString() {
+    return 'MomentVO{id: $id, name: $name, description: $description, phoneNumber: $phoneNumber, photoOrVideoUrlLink: $photoOrVideoUrlLink, profileUrl: $profileUrl, timestamp: $timestamp, likedIdList: $likedIdList, isUserBookMarkFlag: $isUserBookMarkFlag}';
+  }
 
   factory MomentVO.fromJson(Map<String, dynamic> json) =>
       _$MomentVOFromJson(json);

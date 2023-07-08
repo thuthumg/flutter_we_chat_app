@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 
 class ProfileImgWithActiveStatusView extends StatelessWidget {
@@ -34,10 +37,18 @@ class ActiveNowProfileImageView extends StatelessWidget {
   Widget build(BuildContext context) {
     return
       (chatUserProfile == "")?
-      const CircleAvatar(
-      radius: ACTIVE_NOW_CHAT_ITEM_PROFILE_RADIUS,
-      backgroundImage: AssetImage('assets/moments/profile_sample.jpg'),
-    ):
+      Container(
+        color: Colors.white,
+        child: CircleAvatar(
+          backgroundColor: SUMBITED_PIN_THEME_COLOR,
+          radius: ACTIVE_NOW_CHAT_ITEM_PROFILE_RADIUS,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image.asset('assets/splash/logo.png'),
+          ),
+        ),
+      ):
+
       CircleAvatar(
         radius: ACTIVE_NOW_CHAT_ITEM_PROFILE_RADIUS,
         backgroundImage: NetworkImage(chatUserProfile),

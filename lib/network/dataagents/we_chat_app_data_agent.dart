@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:we_chat_app/data/vos/chat_group_vo.dart';
 import 'package:we_chat_app/data/vos/moment_vo.dart';
 import 'package:we_chat_app/data/vos/otp_code_vo.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
@@ -34,5 +35,6 @@ abstract class WeChatAppDataAgent{
   Future<void> saveQRScanUserVO(String loginUserVOId,String scanUserVOId);
 
   Stream<List<UserVO>> getContactList(String userVOId);
+
 
 }

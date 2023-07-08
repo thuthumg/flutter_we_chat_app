@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:video_player/video_player.dart';
+
+import 'package:we_chat_app/blocs/chat_detail_page_bloc.dart';
 import 'package:we_chat_app/components/profile_img_with_active_status_view.dart';
 import 'package:we_chat_app/data/vos/chat_message_vo.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
@@ -7,21 +10,22 @@ import 'package:we_chat_app/pages/chat_detail_page.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 
+
 class SentMsgAndReceiveMsgViewItem extends StatelessWidget {
+  final ChatDetailPageBloc bloc;
   final ChatMessageVO msgItem;
   final UserVO? loginUserVO;
 
   const SentMsgAndReceiveMsgViewItem({super.key,
     required this.msgItem,
-  required this.loginUserVO});
+  required this.loginUserVO,
+  required this.bloc});
 
   @override
   Widget build(BuildContext context) {
 
-    debugPrint("check send msg id ${loginUserVO?.id} ------ ${msgItem.userId}");
-
     return (loginUserVO?.id == msgItem.userId)
-        ? SentMsgSectionView(msgItem: msgItem)
+        ? SentMsgSectionView(bloc:bloc,msgItem: msgItem)
         : ReceiveMsgSectionView(msgItem: msgItem);
 
   }
@@ -37,6 +41,9 @@ class ReceiveMsgSectionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    debugPrint("send msg profile ${msgItem.profileUrl}");
+
     return Container(
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         alignment: Alignment.centerLeft,
@@ -44,12 +51,12 @@ class ReceiveMsgSectionView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
 
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(
                   top: MARGIN_CARD_MEDIUM_2,
                   bottom: MARGIN_CARD_MEDIUM_2,
                   right: MARGIN_CARD_MEDIUM_2),
-              child: ProfileImgWithActiveStatusView(chatUserProfile: '',),
+              child: ProfileImgWithActiveStatusView(chatUserProfile: msgItem.profileUrl??"",),
             ),
             Column(
 
@@ -77,39 +84,106 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
     required this.msgItem
   });
   final ChatMessageVO msgItem;
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Container(
-          width: 150,
-          height: 90,
-          margin: const EdgeInsets.only(
-              top:MARGIN_MEDIUM,),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-            child: Image.asset(
-              msgItem.file??"",
-              fit: BoxFit.cover,
-            ),
-          ),
+
+    List<String> sendFileList =  msgItem.file?.split(",")??[];
+
+    DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
+    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
+    String dateString = dateFormat.format(dateTime);
+    return
+
+      Container(
+        width: 150,
+        height: 100,
+        child: ListView.builder(
+          reverse: true,
+          scrollDirection: Axis.vertical,
+           physics: NeverScrollableScrollPhysics(),
+           shrinkWrap: true,
+          itemCount: sendFileList.length,
+          itemBuilder: (context, index) {
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  width: 150,
+                  height: 90,
+                  margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                  ),
+                  child:
+                  (sendFileList[index].isNotEmpty)?
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                    child: Image.network(
+                      sendFileList[index]??"",
+                      fit: BoxFit.cover,
+                    ),
+                  ):
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                    child: Image.asset(
+                      "assets/chat/empty_image.png",
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: MARGIN_MEDIUM,),
+                Text(
+                  dateString,
+                  style: const TextStyle(
+                    fontSize: TEXT_XSMALL,
+                    color:TEXT_FIELD_HINT_TXT_COLOR,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            );
+          },
         ),
-        SizedBox(height: MARGIN_MEDIUM,),
-        const Text(
-          '12:30AM',
-          style: TextStyle(
-            fontSize: TEXT_XSMALL,
-            color:TEXT_FIELD_HINT_TXT_COLOR,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ],
-    );
+      );
+
+
+
   }
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.end,
+  //     children: [
+  //       Container(
+  //         width: 150,
+  //         height: 90,
+  //         margin: const EdgeInsets.only(
+  //             top:MARGIN_MEDIUM,),
+  //         decoration: BoxDecoration(
+  //           borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+  //         ),
+  //         child: ClipRRect(
+  //           borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+  //           child: Image.asset(
+  //             msgItem.file??"",
+  //             fit: BoxFit.cover,
+  //           ),
+  //         ),
+  //       ),
+  //       SizedBox(height: MARGIN_MEDIUM,),
+  //       const Text(
+  //         '12:30AM',
+  //         style: TextStyle(
+  //           fontSize: TEXT_XSMALL,
+  //           color:TEXT_FIELD_HINT_TXT_COLOR,
+  //           fontWeight: FontWeight.w400,
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 }
 
 class ReceiveTextMsgView extends StatelessWidget {
@@ -159,16 +233,21 @@ class ReceiveTextMsgView extends StatelessWidget {
 }
 
 class SentMsgSectionView extends StatelessWidget {
-  const SentMsgSectionView({
+  final ChatDetailPageBloc bloc;
+   SentMsgSectionView({
     super.key,
     required this.msgItem,
+     required this.bloc
   });
 
   final ChatMessageVO msgItem;
 
   @override
-  Widget build(BuildContext context) {
+  Container build(BuildContext context) {
+    var stringValue = "";
     debugPrint("check send msg ${msgItem.message}");
+    
+
     return Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         alignment: Alignment.centerRight,
@@ -180,16 +259,26 @@ class SentMsgSectionView extends StatelessWidget {
                 child:  TextMsgView(msgItem: msgItem),),
             const SizedBox(height: MARGIN_MEDIUM,),
             Visibility(
-                visible: (msgItem.file == "")? false: true,
-                child: ImageOrVideoMsgView(msgItem: msgItem)),
+              visible: (msgItem.file == "")? false: true,
+              child:
+              ImageMsgView(msgItem: msgItem))
+    //         Visibility(
+    //             visible: (msgItem.file == "")? false: true,
+    //             child:
+    // (bloc.checkFileFromUrl(msgItem.file??"") == "image")?
+    //             ImageMsgView(msgItem: msgItem):
+    // (bloc.checkFileFromUrl(msgItem.file??"") == "video")?
+    // VideoMsgView(bloc: bloc,msgItem: msgItem) : Container(),)
           ],
         ),
       );
   }
 }
 
-class ImageOrVideoMsgView extends StatelessWidget {
-  const ImageOrVideoMsgView({
+
+class ImageMsgView extends StatelessWidget {
+
+  const ImageMsgView({
     super.key,
     required this.msgItem
   });
@@ -197,38 +286,297 @@ class ImageOrVideoMsgView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Container(
-          width: 150,
-          height: 90,
-          margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-            child: Image.asset(
-              msgItem.file??"",
-              fit: BoxFit.cover,
+
+    debugPrint("check image message");
+
+   List<String> sendFileList =  msgItem.file?.split(",")??[];
+
+   DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
+   DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
+   String dateString = dateFormat.format(dateTime);
+    return
+
+      Container(
+        width: 150,
+        height: 100,
+        child: ListView.builder(
+          reverse: true,
+          scrollDirection: Axis.vertical,
+          // physics: NeverScrollableScrollPhysics(),
+           shrinkWrap: true,
+          itemCount: sendFileList.length,
+          itemBuilder: (context, index) {
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  width: 150,
+                  height: 90,
+                  margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                  ),
+                  child:
+                  (sendFileList[index].isNotEmpty)?
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                    child: Image.network(
+                      sendFileList[index]??"",
+                      fit: BoxFit.cover,
+                    ),
+                  ):
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                    child: Image.asset(
+                      "assets/chat/empty_image.png",
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: MARGIN_MEDIUM,),
+                Text(
+                  dateString,
+                  style: const TextStyle(
+                    fontSize: TEXT_XSMALL,
+                    color:TEXT_FIELD_HINT_TXT_COLOR,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+
+
+
+  }
+}
+// class VideoMsgView extends StatelessWidget {
+//   final ChatDetailPageBloc bloc;
+//   const VideoMsgView({
+//     super.key,
+//     required this.msgItem,
+//     required this.bloc
+//   });
+//   final ChatMessageVO msgItem;
+//   Future<void> generateThumbnail(String videoPath) async {
+//    // final tempDir = await getTemporaryDirectory();
+//     final thumbnailPath = await VideoThumbnail.thumbnailFile(
+//       video: videoPath,
+//       thumbnailPath: msgItem.file,
+//       imageFormat: ImageFormat.PNG,
+//       maxHeightOrWidth: 200,
+//       quality: 100,
+//     );
+//     setState(() {
+//       this.thumbnailPath = thumbnailPath;
+//     });
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     debugPrint("check video message");
+//     List<String> sendFileList =  msgItem.file?.split(",")??[];
+//
+//     DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
+//     DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
+//     String dateString = dateFormat.format(dateTime);
+//     return
+//       GestureDetector(
+//         onTap: (){
+//           bloc.videoController!.value.isPlaying
+//               ? bloc.pause()
+//               : bloc.play();
+//         },
+//         child: ClipRRect(
+//           borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),
+//           child: AspectRatio(
+//             aspectRatio: 2/3,
+//             child: bloc.videoController != null ?
+//             Stack(
+//               children: [
+//                 VideoPlayer(
+//                   bloc.videoController!,
+//                 ),
+//                 Center(
+//                   child: Icon(
+//                     bloc.videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+//                     color: Colors.white,
+//                     size: 50,
+//                   ),
+//                 )
+//               ],
+//             ) : const Center(
+//               child: CircularProgressIndicator(),
+//             ),
+//           ),
+//         ),
+//       );
+//     // Container(
+//     //   width: 150,
+//     //   height: 100,
+//     //   child: ListView.builder(
+//     //     reverse: true,
+//     //     scrollDirection: Axis.vertical,
+//     //     // physics: NeverScrollableScrollPhysics(),
+//     //     // shrinkWrap: true,
+//     //     itemCount: sendFileList.length,
+//     //     itemBuilder: (context, index) {
+//     //
+//     //       return Column(
+//     //         crossAxisAlignment: CrossAxisAlignment.end,
+//     //         children: [
+//     //           Container(
+//     //             width: 150,
+//     //             height: 90,
+//     //             margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
+//     //             decoration: BoxDecoration(
+//     //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+//     //             ),
+//     //             child:
+//     //             (sendFileList[index].isNotEmpty)?
+//     //             ClipRRect(
+//     //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+//     //               child: Image.network(
+//     //                 sendFileList[index]??"",
+//     //                 fit: BoxFit.cover,
+//     //               ),
+//     //             ):
+//     //             ClipRRect(
+//     //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+//     //               child: Image.asset(
+//     //                 "assets/chat/empty_image.png",
+//     //                 fit: BoxFit.cover,
+//     //               ),
+//     //             ),
+//     //           ),
+//     //           const SizedBox(height: MARGIN_MEDIUM,),
+//     //           Text(
+//     //             dateString,
+//     //             style: const TextStyle(
+//     //               fontSize: TEXT_XSMALL,
+//     //               color:TEXT_FIELD_HINT_TXT_COLOR,
+//     //               fontWeight: FontWeight.w400,
+//     //             ),
+//     //           ),
+//     //         ],
+//     //       );
+//     //     },
+//     //   ),
+//     // );
+//
+//
+//
+//   }
+// }
+
+class VideoMsgView extends StatelessWidget {
+  final ChatDetailPageBloc bloc;
+  const VideoMsgView({
+    super.key,
+    required this.msgItem,
+    required this.bloc
+  });
+  final ChatMessageVO msgItem;
+
+  @override
+  Widget build(BuildContext context) {
+    debugPrint("check video message");
+    List<String> sendFileList =  msgItem.file?.split(",")??[];
+
+    DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
+    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
+    String dateString = dateFormat.format(dateTime);
+    return
+      GestureDetector(
+        onTap: (){
+          bloc.videoController!.value.isPlaying
+              ? bloc.pause()
+              : bloc.play();
+        },
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),
+          child: AspectRatio(
+            aspectRatio: 2/3,
+            child: bloc.videoController != null ?
+            Stack(
+              children: [
+                VideoPlayer(
+                  bloc.videoController!,
+                ),
+                Center(
+                  child: Icon(
+                    bloc.videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: Colors.white,
+                    size: 50,
+                  ),
+                )
+              ],
+            ) : const Center(
+              child: CircularProgressIndicator(),
             ),
           ),
         ),
-        SizedBox(height: MARGIN_MEDIUM,),
-        const Text(
-          '12:30AM',
-          style: TextStyle(
-            fontSize: TEXT_XSMALL,
-            color:TEXT_FIELD_HINT_TXT_COLOR,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ],
-    );
+      );
+      // Container(
+      //   width: 150,
+      //   height: 100,
+      //   child: ListView.builder(
+      //     reverse: true,
+      //     scrollDirection: Axis.vertical,
+      //     // physics: NeverScrollableScrollPhysics(),
+      //     // shrinkWrap: true,
+      //     itemCount: sendFileList.length,
+      //     itemBuilder: (context, index) {
+      //
+      //       return Column(
+      //         crossAxisAlignment: CrossAxisAlignment.end,
+      //         children: [
+      //           Container(
+      //             width: 150,
+      //             height: 90,
+      //             margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
+      //             decoration: BoxDecoration(
+      //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+      //             ),
+      //             child:
+      //             (sendFileList[index].isNotEmpty)?
+      //             ClipRRect(
+      //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+      //               child: Image.network(
+      //                 sendFileList[index]??"",
+      //                 fit: BoxFit.cover,
+      //               ),
+      //             ):
+      //             ClipRRect(
+      //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+      //               child: Image.asset(
+      //                 "assets/chat/empty_image.png",
+      //                 fit: BoxFit.cover,
+      //               ),
+      //             ),
+      //           ),
+      //           const SizedBox(height: MARGIN_MEDIUM,),
+      //           Text(
+      //             dateString,
+      //             style: const TextStyle(
+      //               fontSize: TEXT_XSMALL,
+      //               color:TEXT_FIELD_HINT_TXT_COLOR,
+      //               fontWeight: FontWeight.w400,
+      //             ),
+      //           ),
+      //         ],
+      //       );
+      //     },
+      //   ),
+      // );
+
+
+
   }
 }
-
 class TextMsgView extends StatelessWidget {
   const TextMsgView({
     super.key,

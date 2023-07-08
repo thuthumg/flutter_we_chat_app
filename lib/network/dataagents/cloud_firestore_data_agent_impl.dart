@@ -153,6 +153,8 @@ class CloudFirestoreDataAgentImpl extends WeChatAppDataAgent{
           .putFile(element);
 
       var downloadURL = await taskSnapshot.ref.getDownloadURL();
+      //var metaData = await taskSnapshot.ref.getMetadata();
+      //var contentType = metaData.contentType;
       strImagesOrVideos.add(downloadURL);
     }
 
@@ -206,38 +208,38 @@ class CloudFirestoreDataAgentImpl extends WeChatAppDataAgent{
 
   @override
   Future<void> saveBookmark(UserVO userVO,MomentVO newMoment) async{
-      debugPrint("save book mark before condition ${newMoment.bookmarkedIdList}");
-    if( newMoment.bookmarkedIdList == null ||  newMoment.bookmarkedIdList?.length == 0)
-      {
-        debugPrint("save book mark  condition1 list null ${userVO.phoneNumber.toString()} ");
-        newMoment.bookmarkedIdList?.add(userVO.phoneNumber.toString());
-        saveToMomentsCollection(newMoment);
-        saveToUserCollection(userVO,newMoment);
-      }else{
-      debugPrint("save book mark  condition2 not null ");
-      var bookmarkedList = newMoment.bookmarkedIdList;
+     // debugPrint("save book mark before condition ${newMoment.bookmarkedIdList}");
+    // if( newMoment.bookmarkedIdList == null ||  newMoment.bookmarkedIdList?.length == 0)
+    //   {
+    //     debugPrint("save book mark  condition1 list null ${userVO.phoneNumber.toString()} ");
+    //     newMoment.bookmarkedIdList?.add(userVO.phoneNumber.toString());
+    //     saveToMomentsCollection(newMoment);
+    //     saveToUserCollection(userVO,newMoment);
+    //   }else{
+    //   debugPrint("save book mark  condition2 not null ");
+    //   var bookmarkedList = newMoment.bookmarkedIdList;
+    //
+    //   for (var bookmarkData in bookmarkedList!) {
+    //     if(bookmarkData == userVO.phoneNumber.toString())
+    //     {
+    //       debugPrint("save book mark  condition3 same phone number");
+    //       newMoment.bookmarkedIdList?.remove(bookmarkData);
+    //
+    //
+    //     }else{
+    //       debugPrint("save book mark condition4 not contain phone number");
+    //       newMoment.bookmarkedIdList?.add(userVO.phoneNumber.toString());
+    //
+    //
+    //     }
+    //   }
+    //
+    //  // saveToMomentsCollection(newMoment);
+    //   saveToUserCollection(userVO,newMoment);
+    //
+    // }
 
-      for (var bookmarkData in bookmarkedList!) {
-        if(bookmarkData == userVO.phoneNumber.toString())
-        {
-          debugPrint("save book mark  condition3 same phone number");
-          newMoment.bookmarkedIdList?.remove(bookmarkData);
-
-
-        }else{
-          debugPrint("save book mark condition4 not contain phone number");
-          newMoment.bookmarkedIdList?.add(userVO.phoneNumber.toString());
-
-
-        }
-      }
-
-      saveToMomentsCollection(newMoment);
       saveToUserCollection(userVO,newMoment);
-
-    }
-
-
    
   }
 
@@ -259,8 +261,6 @@ class CloudFirestoreDataAgentImpl extends WeChatAppDataAgent{
   }
 
   void saveToMomentsCollection(MomentVO newMoment) {
-
-    debugPrint("saveToMomentsCollection ${newMoment.bookmarkedIdList?.length}");
 
     _firestore
         .collection(momentsCollection)

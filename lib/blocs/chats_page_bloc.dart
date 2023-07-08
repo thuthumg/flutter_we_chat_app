@@ -7,6 +7,7 @@ import 'package:we_chat_app/data/models/we_chat_app_model_impl.dart';
 import 'package:we_chat_app/data/vos/chat_history_vo.dart';
 import 'package:we_chat_app/data/vos/chat_message_vo.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
+import 'package:we_chat_app/utils/constants.dart';
 
 class ChatsPageBloc extends ChangeNotifier {
 
@@ -18,6 +19,8 @@ class ChatsPageBloc extends ChangeNotifier {
 
   List<ChatHistoryVO> chatHistoryVOList = [];
 
+  List<ChatHistoryVO> groupChatHistoryVOList = [];
+
   ///Model
   final WeChatAppModel _mWeChatAppModel = WeChatAppModelImpl();
   final AuthenticationModel _authenticationModel = AuthenticationModelImpl();
@@ -28,26 +31,8 @@ class ChatsPageBloc extends ChangeNotifier {
         _authenticationModel.getLoggedInUser().id ?? "")
         .listen((userObj) {
       userVO = userObj;
-      _mWeChatAppModel.getChatHistoryList(userVO?.id??"").listen((chatMsgList){
-        debugPrint("check chat message list length ${chatMsgList.length}");
-
-        // chatHistoryVOList.forEach((element) {
-        //   debugPrint("check chat message for each loop ${element.chatUserId} ${element.chatMsg}");
-        //
-        // });
-        // chatMsgList.forEach((element) {
-        //
-        //   chatHistoryVOList.add(ChatHistoryVO(
-        //       element.userId,
-        //       element.name,
-        //       element.profileUrl,
-        //       element.message,
-        //       element.timestamp)
-        //   )
-        // })
-        chatHistoryVOList = chatMsgList;
-        _notifySafely();
-      });
+      privateChatHistoryList(userVO);
+      groupChatHistoryList(userVO);
       _hideLoading();
       _notifySafely();
     });
@@ -80,6 +65,55 @@ class ChatsPageBloc extends ChangeNotifier {
   void _hideLoading(){
     isLoading = false;
     _notifySafely();
+  }
+
+  void privateChatHistoryList(UserVO? userVO) {
+    _mWeChatAppModel.getChatHistoryList(userVO?.id??"").listen((chatMsgList){
+      debugPrint("check chat message list length ${chatMsgList.length}");
+
+      chatHistoryVOList = chatMsgList;
+      _notifySafely();
+    });
+
+  }
+
+  void groupChatHistoryList(UserVO? userVO) {
+    _mWeChatAppModel.getChatGroupsList(userVO?.id ?? "").listen((groupChatHistoryListVO) {
+      debugPrint("check chat message list length ${groupChatHistoryListVO.length}");
+
+      List<ChatHistoryVO> chatHistoryMessageList = [];
+
+      for (var groupChatHistoryVO in groupChatHistoryListVO) {
+        var mChatHistoryVO = ChatHistoryVO();
+
+        mChatHistoryVO.chatUserId = groupChatHistoryVO.id;
+        mChatHistoryVO.chatUserName = groupChatHistoryVO.name;
+        mChatHistoryVO.chatUserProfileUrl = groupChatHistoryVO.profileUrl;
+
+        var sortedListData = groupChatHistoryVO.message?.values.toList();
+        if(sortedListData != null && sortedListData.length > 0)
+          {
+            debugPrint("group chat list ${sortedListData.length}");
+            sortedListData.sort((a, b) {
+              return (b.timestamp??"").compareTo(a.timestamp??"");
+            });
+
+            mChatHistoryVO.chatMsg = sortedListData?.first.message;
+
+            mChatHistoryVO.chatTime = sortedListData?.first.timestamp!= null
+                ? changeFromTimestampToDate(int.parse(sortedListData?.first.timestamp??""))
+                : null;
+            chatHistoryMessageList.add(mChatHistoryVO);
+          }
+
+      }
+
+      groupChatHistoryVOList = chatHistoryMessageList;
+      _notifySafely();
+    });
+
+
+
   }
 
 }

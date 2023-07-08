@@ -392,11 +392,23 @@ class LoginProfileImgAndUserNameSectionView extends StatelessWidget {
                   backgroundImage:
                   NetworkImage(createMomentPageBloc.profilePicture) ,
                   radius: 21,
-                ): const CircleAvatar(
-                  backgroundImage:
-                  AssetImage('assets/moments/profile_sample.jpg') ,
-                  radius: 21,
-                ),
+                ):
+               Container(
+                 color: Colors.white,
+                 child: CircleAvatar(
+                   backgroundColor: SUMBITED_PIN_THEME_COLOR,
+                   radius: 21,
+                   child: Padding(
+                     padding: const EdgeInsets.all(8.0),
+                     child: Image.asset('assets/splash/logo.png'),
+                   ),
+                 ),
+               ),
+               // const CircleAvatar(
+               //    backgroundImage:
+               //    AssetImage('assets/moments/profile_sample.jpg') ,
+               //    radius: 21,
+               //  ),
               ),
               const SizedBox(
                 width: MARGIN_MEDIUM,

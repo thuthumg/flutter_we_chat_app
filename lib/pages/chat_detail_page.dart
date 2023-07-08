@@ -1,13 +1,17 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:video_player/video_player.dart';
 import 'package:we_chat_app/blocs/chat_detail_page_bloc.dart';
 import 'package:we_chat_app/components/profile_img_with_active_status_view.dart';
 import 'package:we_chat_app/data/vos/chat_message_vo.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
+import 'package:we_chat_app/pages/error_alert_box_view.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 import 'package:we_chat_app/viewitems/sent_msg_and_receive_msg_view_item.dart';
+import 'package:we_chat_app/widgets/loading_view.dart';
 
 class ChatDetailPage extends StatelessWidget {
   final String chatUserName;
@@ -24,54 +28,170 @@ class ChatDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => ChatDetailPageBloc(chatUserId),
+      create: (context) => ChatDetailPageBloc(chatUserId,isGroupChat),
       child: Consumer<ChatDetailPageBloc>(
         builder: (context, bloc, child) => Scaffold(
           backgroundColor: CHAT_PAGE_BG_COLOR,
           appBar: CustomAppBarSectionView(
               chatUserName: chatUserName, chatUserProfile: chatUserProfile),
-          body: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
+          body: Stack(
+            alignment: Alignment.center,
             children: [
-              ///show chat msg (chat History time + Sent Msg +Receive Msg ) Section View
-              ChatMsgSectionView(
-                  loginUserVO:bloc.userVO,
-                  chatMessageList: bloc.chatMessageVOList
-              ),
-
-              ///Type And Send Msg Section View
-              /// Media(photo,video) data, git data, location data and voice data Action Section View
               Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ///Type And Send Msg Section View
-                  SendMsgSectionView(
-                      chatDetailPageBloc: bloc,
-                      onTapSendMessage: () {
-                    return bloc.onTapSendMessage(
-                        bloc.userVO?.id,
-                        chatUserId,
-                        bloc.typeMessageText,
-                        bloc.userVO?.userName,
-                        "",
-                        bloc.userVO?.profileUrl);
-                  }),
+                  ///show chat msg (chat History time + Sent Msg +Receive Msg ) Section View
+                  ChatMsgSectionView(
+                    bloc:bloc,
+                      loginUserVO:bloc.userVO,
+                      chatMessageList: bloc.chatMessageVOList
+                  ),
 
+                  ///Type And Send Msg Section View
                   /// Media(photo,video) data, git data, location data and voice data Action Section View
-                  ActionButtonSectionViewForSendMediaMsg(),
+                  Column(
+
+                    children: [
+                      ///show selected image section
+                      Visibility(
+                        visible: (bloc.selectedImages.isNotEmpty) ? true : false,
+                        child: SelectImageSectionView(chatDetailPageBloc: bloc,
+                        onTapDeleteSelectedData: (selectedId){
+                            bloc.onRemoveSelectedImage(selectedId);
+                        },),
+                      ),
+
+
+                      ///Type And Send Msg Section View
+                      SendMsgSectionView(
+                          chatDetailPageBloc: bloc,
+                          onTapSendMessage: () {
+
+
+                            bloc.onTapSendMessage(
+                                bloc.userVO?.id,
+                                chatUserId,
+                                bloc.typeMessageText,
+                                bloc.userVO?.userName,
+                                bloc.selectedImages,
+                                bloc.userVO?.profileUrl,
+                                isGroupChat).then((value) {
+                                  bloc.typeMessageText = "";
+                                  bloc.selectedImages = [];
+                                })
+                                .catchError((error){
+
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) =>
+                                      _buildPopupDialog(context));
+                            });
+
+                        // return bloc.onTapSendMessage(
+                        //     bloc.userVO?.id,
+                        //     chatUserId,
+                        //     bloc.typeMessageText,
+                        //     bloc.userVO?.userName,
+                        //     bloc.selectedImages,
+                        //     bloc.userVO?.profileUrl,
+                        //     isGroupChat);
+                      }),
+
+                      /// Media(photo,video) data, git data, location data and voice data Action Section View
+                      ActionButtonSectionViewForSendMediaMsg(
+                        onTapBottomNavItem: (bottomNavIndex){
+                          _pickMultipleImages(bloc);
+                        },
+                      ),
+                    ],
+                  ),
                 ],
               ),
+              Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Visibility(
+                    visible: bloc.isLoading,
+                    child: Container(
+                      // color: Colors.transparent,
+                      child: Center(
+                        child: LoadingView(),
+                      ),
+                    ),)
+              )
             ],
           ),
         ),
       ),
     );
   }
+  _buildPopupDialog(BuildContext context) {
+    return ErrorAlertBoxView(messageStr: "Send Message should not be empty" );
+  }
+
+
+}
+
+String checkFileType(String path) {
+  String extension = path.split('.').last.toLowerCase();
+  debugPrint("check extension ${extension} ${path}");
+  if (extension == 'mp4\'' || extension == 'mov\'') {
+    debugPrint("check extension 2 ${path}");
+    return 'Video';
+  } else if (extension == 'jpg' || extension == 'png') {
+    return 'Image';
+  } else {
+    return 'Unknown';
+  }
+}
+
+FileType getFileTypeFromPath(String? path) {
+  String? extension = path?.split('.').last.toLowerCase();
+  if (extension == 'mp4' || extension == 'mov') {
+    return FileType.video;
+  } else if (extension == 'jpg' || extension == 'png') {
+    return FileType.image;
+  } else {
+    return FileType.any;
+  }
+}
+
+Future<void> _pickMultipleImages(ChatDetailPageBloc bloc) async {
+  FilePickerResult? result =
+  await FilePicker.platform.pickFiles(allowMultiple: true);
+
+  if (result != null) {
+
+    List<String?> filePaths = result.paths;
+    List fileTypes = result.paths
+        .map((path) => getFileTypeFromPath(path))
+        .toList();
+
+    bool hasVideo = fileTypes.contains(FileType.video);
+    if (hasVideo) {
+      debugPrint("hasvideo");
+      filePaths = [result.paths.last];
+      fileTypes = [getFileTypeFromPath(result.paths.last)];
+      bloc.initVideo(filePaths.last!);
+    }
+
+    bloc.onImageChosen(filePaths);
+
+  }
+
+
 }
 
 class ActionButtonSectionViewForSendMediaMsg extends StatefulWidget {
-  const ActionButtonSectionViewForSendMediaMsg({
+
+  Function(int) onTapBottomNavItem;
+
+  ActionButtonSectionViewForSendMediaMsg({
     super.key,
+    required this.onTapBottomNavItem
   });
 
   @override
@@ -84,8 +204,10 @@ class _ActionButtonSectionViewForSendMediaMsgState
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
+    widget.onTapBottomNavItem(index);
     setState(() {
       _selectedIndex = index;
+
     });
   }
 
@@ -172,6 +294,100 @@ class _ActionButtonSectionViewForSendMediaMsgState
   }
 }
 
+class SelectImageSectionView extends StatelessWidget {
+ final Function(int) onTapDeleteSelectedData;
+  final ChatDetailPageBloc chatDetailPageBloc;
+  const SelectImageSectionView({super.key,
+    required this.onTapDeleteSelectedData,
+    required this.chatDetailPageBloc});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 120,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: chatDetailPageBloc.selectedImages.length,
+        itemBuilder: (BuildContext context, int index) {
+          return Container(
+              width: 100,
+              height: 60,
+              margin: const EdgeInsets.only(
+                  left: MARGIN_MEDIUM,
+                  right: MARGIN_MEDIUM,
+                  bottom: MARGIN_MEDIUM_2),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    left: 0,
+                    bottom:0,
+                    child: (checkFileType(chatDetailPageBloc.selectedImages[index].toString()) == 'Video') ?
+                    GestureDetector(
+                      onTap: (){
+                        chatDetailPageBloc.videoController!.value.isPlaying
+                            ? chatDetailPageBloc.pause()
+                            : chatDetailPageBloc.play();
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),
+                        child: AspectRatio(
+                          aspectRatio: 2/3,
+                          child: chatDetailPageBloc.videoController != null ?
+                          Stack(
+                            children: [
+                              VideoPlayer(
+                                chatDetailPageBloc.videoController!,
+                              ),
+                              Center(
+                                child: Icon(
+                                  chatDetailPageBloc.videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                                  color: Colors.white,
+                                  size: 50,
+                                ),
+                              )
+                            ],
+                          ) : const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                      ),
+                    )
+                        :
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),
+                      child: Image.file(
+                        chatDetailPageBloc.selectedImages[index],
+                        fit: BoxFit.cover,
+                      ),
+
+                    ),),
+
+                  GestureDetector(
+                    onTap: (){
+                      onTapDeleteSelectedData(index);
+                    },
+                    child: const Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Icon(Icons.cancel,size: 25,color: Colors.black,)),
+                  )
+
+
+                ],
+              )
+
+          );
+        },
+      ),
+    );
+  }
+}
+
 class SendMsgSectionView extends StatelessWidget {
   final Function onTapSendMessage;
   final ChatDetailPageBloc chatDetailPageBloc;
@@ -220,13 +436,15 @@ class SendMsgSectionView extends StatelessWidget {
 }
 
 class ChatMsgSectionView extends StatelessWidget {
+  ChatDetailPageBloc bloc;
   List<ChatMessageVO> chatMessageList;
   UserVO? loginUserVO;
 
    ChatMsgSectionView({
     super.key,
      required this.chatMessageList,
-     required this.loginUserVO
+     required this.loginUserVO,
+     required this.bloc
   });
 
   @override
@@ -269,6 +487,7 @@ class ChatMsgSectionView extends StatelessWidget {
                 height: MARGIN_CARD_MEDIUM_2,
               ),
               SentMsgAndReceiveMsgViewItem(
+                bloc: bloc,
                 loginUserVO: loginUserVO,
                 msgItem: message,
               )
@@ -407,3 +626,4 @@ class ChatUserNameAndStatusView extends StatelessWidget {
     );
   }
 }
+

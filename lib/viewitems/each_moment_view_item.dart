@@ -74,7 +74,7 @@ class LikeCommentSaveActionSectionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-
+    debugPrint("check  user book flag = ${mMomentVO?.isUserBookMarkFlag}");
 
     return Padding(
       padding: const EdgeInsets.only(left: MARGIN_MEDIUM_2,
@@ -96,7 +96,10 @@ class LikeCommentSaveActionSectionView extends StatelessWidget {
                   onTapBookMark(mMomentVO!);
                 },
                 child: SaveMomentActionView(
-                  isSelected: (mMomentVO?.bookmarkedIdList?.contains(loginUserPhoneNum)??false)? true :false,
+           /*       isSelected: (
+                      mMomentVO?.bookmarkedIdList?.contains(loginUserPhoneNum)??false)? true :false,*/
+
+                  isSelected:mMomentVO?.isUserBookMarkFlag??false,
                 ),
               ),
             ],
@@ -287,14 +290,27 @@ class ProfileImgAndTitleSettingSectionView extends StatelessWidget {
               ),
               child:
               (mMomentVO?.profileUrl == null || mMomentVO?.profileUrl == "")?
-              const CircleAvatar(
-                backgroundImage: AssetImage('assets/moments/profile_sample.jpg'),
-                radius: 21,
-              ): CircleAvatar(
+              Container(
+                color: Colors.white,
+                child: CircleAvatar(
+                  backgroundColor: SUMBITED_PIN_THEME_COLOR,
+                  radius: 21,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Image.asset('assets/splash/logo.png'),
+                  ),
+                ),
+              )
+             : CircleAvatar(
                 backgroundImage: NetworkImage(mMomentVO?.profileUrl??""),
                 radius: 21,
               ),
             ),
+
+            // const CircleAvatar(
+            //   backgroundImage: AssetImage('assets/moments/profile_sample.jpg'),
+            //   radius: 21,
+            // )
             const SizedBox(width: MARGIN_MEDIUM,),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -16,6 +16,7 @@ UserVO _$UserVOFromJson(Map<String, dynamic> json) => UserVO(
       genderType: json['genderType'] as String?,
       dateOfBirth: json['dateOfBirth'] as String?,
       activeStatus: json['activeStatus'] as String?,
+      isSelected: json['isSelected'] as bool?,
     );
 
 Map<String, dynamic> _$UserVOToJson(UserVO instance) => <String, dynamic>{
@@ -28,4 +29,5 @@ Map<String, dynamic> _$UserVOToJson(UserVO instance) => <String, dynamic>{
       'genderType': instance.genderType,
       'dateOfBirth': instance.dateOfBirth,
       'activeStatus': instance.activeStatus,
+      'isSelected': instance.isSelected,
     };

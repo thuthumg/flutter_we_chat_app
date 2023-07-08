@@ -16,24 +16,6 @@ class HomePage extends StatelessWidget {
    HomePage({super.key,required this.navigateIndex});
 
 
-  //  int _selectedScreenIndex = 0;
-  //  bool appBarVisible = true;
-
- //   GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-    // void _selectScreen(int index){
-    //   setState(() {
-    //     _selectedScreenIndex = index;
-    //
-    //     if(index == 0)
-    //     {
-    //       appBarVisible = true;
-    //     }else{
-    //       appBarVisible = false;
-    //     }
-    //     // navigatorKey.currentState.pushNamed('/tab$index');
-    //   });
-    // }
     Widget _getPage(int pageName, UserVO? userVO) {
 
       switch (pageName) {

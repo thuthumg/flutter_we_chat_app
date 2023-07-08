@@ -345,19 +345,31 @@ class ProfileShowProfileUploadAndQRGenerateView extends StatelessWidget {
     return Stack(
       children: [
     (bloc.profilePicture == "") ?
-        const CircleAvatar(
-          radius: 55,
-          backgroundImage:
-          AssetImage('assets/moments/profile_sample.jpg')
-
-        ):
-    CircleAvatar(
+    Container(
+      color: Colors.white,
+      child: CircleAvatar(
+        backgroundColor: SUMBITED_PIN_THEME_COLOR,
+        radius: 55,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset('assets/splash/logo.png'),
+        ),
+      ),
+    ):CircleAvatar(
         radius: 55,
         backgroundImage:
 
         NetworkImage('${bloc.profilePicture}')
 
-    ),
+    )
+
+    ,
+        // const CircleAvatar(
+        //   radius: 55,
+        //   backgroundImage:
+        //   AssetImage('assets/moments/profile_sample.jpg')
+        //
+        // ):
         Positioned(
           bottom: 0,
           left: 0,

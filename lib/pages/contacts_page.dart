@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:we_chat_app/blocs/contacts_page_bloc.dart';
+import 'package:we_chat_app/data/vos/chat_group_vo.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/pages/chat_detail_page.dart';
 import 'package:we_chat_app/pages/create_group_contacts_page.dart';
@@ -33,7 +34,9 @@ class ContactsPage extends StatelessWidget {
               children: [
                 ///Search contact section view
                 SearchBoxWidget(
-                  onSearch: (searchText) {},
+                  onSearch: (searchText) {
+                    bloc.searchContacts(searchText,"contactsList");
+                  },
                 ),
                 Expanded(child: GroupSectionAndContactsListView(
                     contactsPageBloc: bloc)),
@@ -68,7 +71,10 @@ class ContactsCustomAppBar extends StatelessWidget
         children: [
           const ContactTitleTextView(),
           ContactsTotalCountView(
-            contactCount: contactsPageBloc.userMap.length,
+            contactCount:
+            contactsPageBloc.userMap.length,
+            // (contactsPageBloc.filteredMap.length == 0)?
+            // contactsPageBloc.userMap.length : contactsPageBloc.filteredMap.length,
           ),
         ],
       ),
@@ -161,7 +167,8 @@ class GroupSectionAndContactsListView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ///Group section view
-            const CreateGroupAndGroupContactsListView(groupCount: 0, groupList: []),
+            CreateGroupAndGroupContactsListView(groupCount: contactsPageBloc.mGroupContactsList?.length??0,
+                groupList: contactsPageBloc.mGroupContactsList),
 
             /// Contacts List (group by nameFirstcharacter) section view
             Expanded(
@@ -201,13 +208,27 @@ class ContactNameFirstCharacterGroupContactListView extends StatelessWidget {
       child: ListView.builder(
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
-        itemCount: contactsPageBloc.userMap.length, // Only one item to display
+        itemCount:
+        // (contactsPageBloc.filteredMap == {})?
+        // contactsPageBloc.userMap.length : contactsPageBloc.filteredMap.length,
+
+        contactsPageBloc.userMap.length, // Only one item to display
         itemBuilder: (BuildContext context, int index) {
 
-          String group = contactsPageBloc.userMap.keys.elementAt(index);
-          List<UserVO>? users = contactsPageBloc.userMap[group];
+
+          String group =
+          contactsPageBloc.userMap.keys.elementAt(index);
+          List<UserVO>? users =
+          contactsPageBloc.userMap[group];
+
+          //
+          // String group =  (contactsPageBloc.filteredMap == {})?
+          // contactsPageBloc.userMap.keys.elementAt(index) : contactsPageBloc.filteredMap.keys.elementAt(index);
+          // List<UserVO>? users = (contactsPageBloc.filteredMap == {})?
+          // contactsPageBloc.userMap[group] : contactsPageBloc.filteredMap[group];
 
           return ContactNameFirstCharacterGroupEachViewItem(
+            bloc: contactsPageBloc,
               secondListViewItem: users,
           firstCharacterGroupName: group,
           isCreateGroup: false,
@@ -231,7 +252,7 @@ class ContactNameFirstCharacterGroupContactListView extends StatelessWidget {
 
 class CreateGroupAndGroupContactsListView extends StatelessWidget {
   final int groupCount;
-  final List<String> groupList;
+  final List<ChatGroupVO>? groupList;
 
   const CreateGroupAndGroupContactsListView(
       {super.key, required this.groupCount, required this.groupList});
@@ -244,8 +265,8 @@ class CreateGroupAndGroupContactsListView extends StatelessWidget {
         GroupTextAndCountView(
           groupCount: groupCount,
         ),
-        const GroupContactsListView(
-          groupList: [],
+        GroupContactsListView(
+          groupList: groupList,
         )
       ],
     );
@@ -274,7 +295,7 @@ class GroupTextAndCountView extends StatelessWidget {
 }
 
 class GroupContactsListView extends StatelessWidget {
-  final List<String> groupList;
+  final List<ChatGroupVO>? groupList;
 
   const GroupContactsListView({super.key, required this.groupList});
 
@@ -284,18 +305,19 @@ class GroupContactsListView extends StatelessWidget {
       height: 125,
       child: ListView.builder(
           scrollDirection: Axis.horizontal,
-          itemCount: 5,
+          itemCount: groupList?.length,
           itemBuilder: (BuildContext context, int index) {
             return EachGroupContactViewItem(
+              chatGroupVO: groupList?[index],
               firstItemIndex: index,
               onTapCreateGroup: () {
                 navigateToScreen(context, CreateGroupContactsPage(),false);
               },
               onTapEachGroup: () {
                 navigateToScreen(context,  ChatDetailPage(
-                  chatUserProfile: "",
-                  chatUserName: "",
-                  chatUserId:"",
+                  chatUserProfile:  groupList?[index].profileUrl??"",
+                  chatUserName: groupList?[index].name??"",
+                  chatUserId: groupList?[index].id??"",
                   isGroupChat: true,
                 ),false);
               },

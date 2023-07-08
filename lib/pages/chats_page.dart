@@ -64,7 +64,18 @@ class ChatsPage extends StatelessWidget{
                   ),false);
                 },
                    chatHistoryVOList: bloc.chatHistoryVOList
-               )
+               ),
+                ChatHistoryListView(onTapEachChat: (chatHistoryVO){
+                  debugPrint("check action 1");
+                  navigateToScreen(context,  ChatDetailPage(
+                    chatUserProfile:chatHistoryVO.chatUserProfileUrl??"",
+                    chatUserName:chatHistoryVO.chatUserName??"",
+                    chatUserId:chatHistoryVO.chatUserId??"",
+                    isGroupChat: true,
+                  ),false);
+                },
+                    chatHistoryVOList: bloc.groupChatHistoryVOList
+                )
               ],
             ),
           ),

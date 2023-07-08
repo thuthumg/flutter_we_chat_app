@@ -33,9 +33,13 @@ class UserVO{
   String? activeStatus;
 
 
+  bool? isSelected = false;
+
+
+
 
   UserVO({this.id, this.userName, this.email, this.password, this.phoneNumber,
-    this.profileUrl, this.genderType, this.dateOfBirth, this.activeStatus});
+    this.profileUrl, this.genderType, this.dateOfBirth, this.activeStatus,this.isSelected});
 
   factory UserVO.fromJson(Map<String, dynamic> json) =>
       _$UserVOFromJson(json);

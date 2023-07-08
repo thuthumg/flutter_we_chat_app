@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:we_chat_app/blocs/contacts_page_bloc.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
@@ -6,6 +7,7 @@ import 'package:we_chat_app/viewitems/each_contact_view_item.dart';
 
 class ContactNameFirstCharacterGroupEachViewItem extends StatelessWidget {
 
+  final ContactsPageBloc bloc;
   final String? firstCharacterGroupName;
   final List<UserVO>? secondListViewItem;
   final bool isCreateGroup;
@@ -21,7 +23,8 @@ class ContactNameFirstCharacterGroupEachViewItem extends StatelessWidget {
     required this.isCreateGroup,
     required this.selectedCheck,
     required this.onTapCheckbox,
-    required this.onTapContact
+    required this.onTapContact,
+    required this.bloc
   });
   @override
   Widget build(BuildContext context) {
@@ -43,7 +46,7 @@ class ContactNameFirstCharacterGroupEachViewItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.only(
+            padding: const EdgeInsets.only(
               top: MARGIN_MEDIUM_2,
               left: MARGIN_MEDIUM_2,
             ),
@@ -56,7 +59,9 @@ class ContactNameFirstCharacterGroupEachViewItem extends StatelessWidget {
               ),
             ),
           ),
-          ContactListView(secondListViewItem: secondListViewItem,
+          ContactListView(
+            bloc: bloc,
+            secondListViewItem: secondListViewItem,
               isCreateGroup:isCreateGroup,
             onTapCheckbox: (selectedCheck){
             onTapCheckbox(selectedCheck);
@@ -78,6 +83,7 @@ class ContactListView extends StatelessWidget {
   final Function(bool) onTapCheckbox;
   final bool selectedCheck;
   final Function(UserVO?)  onTapContact;
+  final ContactsPageBloc bloc;
 
   const ContactListView({
     super.key,
@@ -85,7 +91,8 @@ class ContactListView extends StatelessWidget {
     required this.isCreateGroup,
     required this.onTapCheckbox,
     required this.selectedCheck,
-    required this.onTapContact
+    required this.onTapContact,
+    required this.bloc
   });
 
   final List<UserVO>? secondListViewItem;
@@ -98,6 +105,7 @@ class ContactListView extends StatelessWidget {
       itemCount: secondListViewItem?.length,
       itemBuilder: (BuildContext context, int index) {
         return EachContactViewItem(
+          bloc: bloc,
           contactUserVO:secondListViewItem?[index],
           isCreateGroup: isCreateGroup,
           onTapCheckbox: (selectedCheck){

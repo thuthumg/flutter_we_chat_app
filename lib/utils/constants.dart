@@ -29,7 +29,10 @@ List<String> monthsList =
       'November',
       'December'
     ];
-
+String changeFromTimestampToDate(int timestamp) {
+  var dateFormat = DateFormat('yyyy-MM-dd');
+  return dateFormat.format(DateTime.fromMillisecondsSinceEpoch(timestamp));
+}
 String changeMonthTypeFromMonthNumberToMonthName(String month){
   if (month == '1') {
     return monthsList[0] ;

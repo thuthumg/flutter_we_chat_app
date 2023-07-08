@@ -1,16 +1,18 @@
 
 import 'package:flutter/material.dart';
+import 'package:we_chat_app/blocs/contacts_page_bloc.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 
-class EachContactViewItem extends StatefulWidget {
+class EachContactViewItem extends StatelessWidget {
 
   final bool isCreateGroup;
   final Function(bool) onTapCheckbox;
   final bool selectedCheck;
   final UserVO? contactUserVO;
   final Function(UserVO?) onTapContact;
+  final ContactsPageBloc bloc;
 
   const EachContactViewItem({
     super.key,
@@ -18,39 +20,46 @@ class EachContactViewItem extends StatefulWidget {
     required this.onTapCheckbox,
     required this.selectedCheck,
     required this.contactUserVO,
-    required this.onTapContact
+    required this.onTapContact,
+    required this.bloc
   });
-
-  @override
-  State<EachContactViewItem> createState() => _EachContactViewItemState();
-}
-
-class _EachContactViewItemState extends State<EachContactViewItem> {
   @override
   Widget build(BuildContext context) {
     bool isChecked = false;
-    return GestureDetector(
+    return
+      GestureDetector(
       onTap: (){
-        widget.onTapContact(widget.contactUserVO);
+        contactUserVO?.isSelected = (!(contactUserVO?.isSelected??false));
+        onTapContact(contactUserVO);
       },
       child: Container(
         margin:
-        EdgeInsets.all(MARGIN_CARD_MEDIUM_2),
+        const EdgeInsets.all(MARGIN_CARD_MEDIUM_2),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
               children: [
-                ContactProfileImgView(contactProfile: widget.contactUserVO?.profileUrl??"",),
+                ContactProfileImgView(contactProfile: contactUserVO?.profileUrl??"",),
                 const SizedBox(
                   width: MARGIN_CARD_MEDIUM_2,
                 ),
-                ContactNameView(contactName: widget.contactUserVO?.userName??"",),
+                ContactNameView(contactName: contactUserVO?.userName??"",),
               ],
             ),
-            widget.isCreateGroup ? Align(
-              alignment: Alignment.centerRight,
-              child:
+            isCreateGroup ? Align(
+                alignment: Alignment.centerRight,
+                child:
+                Container(
+                  child: contactUserVO?.isSelected??false ?
+                  Image.asset('assets/contacts/contact_selected_icon.png',scale: 2,):
+                  Image.asset('assets/contacts/contact_unselected_icon.png',scale: 2,),
+                )
+
+
+
+/*
+
               SizedBox(
                 height: CHECK_BOX_SIZE_HEIGHT,
                 width: CHECK_BOX_SIZE_WIDTH,
@@ -77,7 +86,7 @@ class _EachContactViewItemState extends State<EachContactViewItem> {
                     },
                   ),
                 ),
-              )
+              )*/
               // Checkbox(
               //   value: widget.selectedCheck,
               //   onChanged: (newValue) {
@@ -90,27 +99,27 @@ class _EachContactViewItemState extends State<EachContactViewItem> {
               //     // });
               //   },
               // )
-          //     Checkbox(
-          //    // checkColor: Colors.white,
-          //     fillColor: MaterialStateProperty.resolveWith(
-          //             (states) {
-          //           // If the button is pressed, return green, otherwise blue
-          //           if (states.contains(MaterialState.pressed)) {
-          //             return Colors.green;
-          //           }
-          //           return Colors.blue;
-          //         }
-          //     ),
-          //     value: isChecked,
-          //     shape: CircleBorder(),
-          //     onChanged: (bool? value) {
-          //       debugPrint("onchange");
-          //       setState(() {
-          //         debugPrint("onchange set state");
-          //         isChecked = value!;
-          //       });
-          //     },
-          // ),
+              //     Checkbox(
+              //    // checkColor: Colors.white,
+              //     fillColor: MaterialStateProperty.resolveWith(
+              //             (states) {
+              //           // If the button is pressed, return green, otherwise blue
+              //           if (states.contains(MaterialState.pressed)) {
+              //             return Colors.green;
+              //           }
+              //           return Colors.blue;
+              //         }
+              //     ),
+              //     value: isChecked,
+              //     shape: CircleBorder(),
+              //     onChanged: (bool? value) {
+              //       debugPrint("onchange");
+              //       setState(() {
+              //         debugPrint("onchange set state");
+              //         isChecked = value!;
+              //       });
+              //     },
+              // ),
             ) : Container()
             // Center(
             //     child: InkWell(
@@ -158,15 +167,31 @@ class ContactProfileImgView extends StatelessWidget {
   Widget build(BuildContext context) {
     return
       (contactProfile == "")?
-      const CircleAvatar(
-      radius: ACTIVE_NOW_CHAT_ITEM_PROFILE_RADIUS,
-      backgroundImage:
-      AssetImage('assets/moments/profile_sample.jpg'),
-    ):CircleAvatar(
+      Container(
+        color: Colors.white,
+        child: CircleAvatar(
+          backgroundColor: SUMBITED_PIN_THEME_COLOR,
+          radius: ACTIVE_NOW_CHAT_ITEM_PROFILE_RADIUS,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image.asset('assets/splash/logo.png'),
+          ),
+        ),
+      )
+     :CircleAvatar(
         radius: ACTIVE_NOW_CHAT_ITEM_PROFILE_RADIUS,
         backgroundImage:
         NetworkImage(contactProfile),
       );
+
+
+
+/*
+    const CircleAvatar(
+      radius: ACTIVE_NOW_CHAT_ITEM_PROFILE_RADIUS,
+      backgroundImage:
+      AssetImage('assets/moments/profile_sample.jpg'),
+    ):*/
   }
 }
 

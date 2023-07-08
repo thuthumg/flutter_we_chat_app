@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:we_chat_app/data/vos/chat_group_vo.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 
 class EachGroupContactViewItem extends StatelessWidget {
 
+  final ChatGroupVO? chatGroupVO;
   final int firstItemIndex;
   final Function onTapCreateGroup;
   final Function onTapEachGroup;
@@ -12,7 +14,8 @@ class EachGroupContactViewItem extends StatelessWidget {
     super.key,
     required this.firstItemIndex,
     required this.onTapCreateGroup,
-    required this.onTapEachGroup
+    required this.onTapEachGroup,
+    required this.chatGroupVO
   });
 
   @override
@@ -49,9 +52,9 @@ class EachGroupContactViewItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                GroupImageView(groupImage: "",firstItemIndex:firstItemIndex),
+                GroupImageView(groupImage:chatGroupVO?.profileUrl??"",firstItemIndex:firstItemIndex),
                 const SizedBox(height: MARGIN_MEDIUM,),
-                GroupNameView(groupName: "",firstItemIndex: firstItemIndex,),
+                GroupNameView(groupName: chatGroupVO?.name??"",firstItemIndex: firstItemIndex,),
 
               ],
             ),
@@ -78,7 +81,7 @@ class GroupNameView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Text(
-        (firstItemIndex == 0)? 'Add New' : 'Smiles',
+        (firstItemIndex == 0)? 'Add New' : groupName,
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: TEXT_REGULAR,
@@ -103,6 +106,9 @@ class GroupImageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    debugPrint("check img link ${groupImage}");
+
     return Container(
       width: (firstItemIndex == 0)? 40 :50,
       height: 45,
@@ -117,8 +123,11 @@ class GroupImageView extends StatelessWidget {
           fit: BoxFit.cover,
          // scale: 5,
         ):
-        Image.asset(
+        (groupImage=="") ? Image.asset(
           'assets/moments/background_sample.jpg',
+          fit: BoxFit.cover,
+        ):Image.network(
+          groupImage,
           fit: BoxFit.cover,
         ),
       ),
