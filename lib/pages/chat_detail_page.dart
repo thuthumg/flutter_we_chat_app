@@ -62,12 +62,10 @@ class ChatDetailPage extends StatelessWidget {
                         },),
                       ),
 
-
                       ///Type And Send Msg Section View
                       SendMsgSectionView(
                           chatDetailPageBloc: bloc,
                           onTapSendMessage: () {
-
 
                             bloc.onTapSendMessage(
                                 bloc.userVO?.id,
@@ -454,9 +452,10 @@ class ChatMsgSectionView extends StatelessWidget {
     return Expanded(
       child: ListView.builder(
         reverse: true,
+       // physics: ClampingScrollPhysics(),
         scrollDirection: Axis.vertical,
         // physics: NeverScrollableScrollPhysics(),
-        // shrinkWrap: true,
+       // shrinkWrap: true,
         itemCount: chatMessageList.length,
         itemBuilder: (context, index) {
           ChatMessageVO message = chatMessageList[index];
@@ -483,7 +482,7 @@ class ChatMsgSectionView extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(
+             const SizedBox(
                 height: MARGIN_CARD_MEDIUM_2,
               ),
               SentMsgAndReceiveMsgViewItem(

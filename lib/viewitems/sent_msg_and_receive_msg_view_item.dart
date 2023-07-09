@@ -45,21 +45,22 @@ class ReceiveMsgSectionView extends StatelessWidget {
     debugPrint("send msg profile ${msgItem.profileUrl}");
 
     return Container(
+
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         alignment: Alignment.centerLeft,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-
+          mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: EdgeInsets.only(
-                  top: MARGIN_CARD_MEDIUM_2,
-                  bottom: MARGIN_CARD_MEDIUM_2,
-                  right: MARGIN_CARD_MEDIUM_2),
+              padding: const EdgeInsets.only(
+                  top: MARGIN_MEDIUM_1,
+                  bottom: MARGIN_MEDIUM_1,
+                  right: MARGIN_MEDIUM_1),
               child: ProfileImgWithActiveStatusView(chatUserProfile: msgItem.profileUrl??"",),
             ),
             Column(
-
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Visibility(
@@ -94,24 +95,103 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
     DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
     String dateString = dateFormat.format(dateTime);
     return
+      // Column(
+      //   crossAxisAlignment: CrossAxisAlignment.end,
+      //   children: [
+      //     Container(
+      //       width: 160,
+      //       height: 100,
+      //       margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
+      //       decoration: BoxDecoration(
+      //         borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+      //       ),
+      //       child:
+      //       (sendFileList[0].isNotEmpty)?
+      //       ClipRRect(
+      //         borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+      //         child: Image.network(
+      //           sendFileList[0]??"",
+      //           fit: BoxFit.cover,
+      //         ),
+      //       ):
+      //       ClipRRect(
+      //         borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+      //         child: Image.asset(
+      //           "assets/chat/empty_image.png",
+      //           fit: BoxFit.cover,
+      //         ),
+      //       ),
+      //     ),
+      //     const SizedBox(height: MARGIN_MEDIUM,),
+      //     Text(
+      //       dateString,
+      //       style: const TextStyle(
+      //         fontSize: TEXT_XSMALL,
+      //         color:TEXT_FIELD_HINT_TXT_COLOR,
+      //         fontWeight: FontWeight.w400,
+      //       ),
+      //     ),
+      //   ],
+      // )
+      (sendFileList.length ==1)?
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Container(
+            width: 160,
+            height: 100,
+            margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+            ),
+            child:
+            (sendFileList[0].isNotEmpty)?
+            ClipRRect(
+              borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+              child: Image.network(
+                sendFileList[0]??"",
+                fit: BoxFit.cover,
+              ),
+            ):
+            ClipRRect(
+              borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+              child: Image.asset(
+                "assets/chat/empty_image.png",
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          const SizedBox(height: MARGIN_MEDIUM,),
+          Text(
+            dateString,
+            style: const TextStyle(
+              fontSize: TEXT_XSMALL,
+              color:TEXT_FIELD_HINT_TXT_COLOR,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
+      ):
 
       Container(
-        width: 150,
-        height: 100,
-        child: ListView.builder(
-          reverse: true,
-          scrollDirection: Axis.vertical,
-           physics: NeverScrollableScrollPhysics(),
-           shrinkWrap: true,
-          itemCount: sendFileList.length,
-          itemBuilder: (context, index) {
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  width: 150,
-                  height: 90,
+        width:MediaQuery.of(context).size.width*0.73,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(), // Disable GridView scrolling
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2, // Number of columns
+                // mainAxisSpacing:5,
+                crossAxisSpacing: MARGIN_MEDIUM,
+                childAspectRatio: 1.45,
+              ),
+              itemCount: sendFileList.length,
+              itemBuilder: (context,index){
+                return Container(
+                  width: IMAGE_MESSAGE_WIDTH,
+                  height: IMAGE_MESSAGE_HEIGHT,
                   margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
@@ -132,21 +212,78 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
                       fit: BoxFit.cover,
                     ),
                   ),
-                ),
-                const SizedBox(height: MARGIN_MEDIUM,),
-                Text(
-                  dateString,
-                  style: const TextStyle(
-                    fontSize: TEXT_XSMALL,
-                    color:TEXT_FIELD_HINT_TXT_COLOR,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-            );
-          },
+                );
+              },
+
+            ),
+            const SizedBox(height: MARGIN_MEDIUM,),
+            Text(
+              dateString,
+              style: const TextStyle(
+                fontSize: TEXT_XSMALL,
+                color:TEXT_FIELD_HINT_TXT_COLOR,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
         ),
       );
+
+
+
+      //----------------
+      // Container(
+      //   width: 150,
+      //   height: 100,
+      //   child: ListView.builder(
+      //     reverse: true,
+      //     scrollDirection: Axis.vertical,
+      //      physics: NeverScrollableScrollPhysics(),
+      //      shrinkWrap: true,
+      //     itemCount: sendFileList.length,
+      //     itemBuilder: (context, index) {
+      //
+      //       return Column(
+      //         crossAxisAlignment: CrossAxisAlignment.end,
+      //         children: [
+      //           Container(
+      //             width: 150,
+      //             height: 90,
+      //             margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
+      //             decoration: BoxDecoration(
+      //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+      //             ),
+      //             child:
+      //             (sendFileList[index].isNotEmpty)?
+      //             ClipRRect(
+      //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+      //               child: Image.network(
+      //                 sendFileList[index]??"",
+      //                 fit: BoxFit.cover,
+      //               ),
+      //             ):
+      //             ClipRRect(
+      //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+      //               child: Image.asset(
+      //                 "assets/chat/empty_image.png",
+      //                 fit: BoxFit.cover,
+      //               ),
+      //             ),
+      //           ),
+      //           const SizedBox(height: MARGIN_MEDIUM,),
+      //           Text(
+      //             dateString,
+      //             style: const TextStyle(
+      //               fontSize: TEXT_XSMALL,
+      //               color:TEXT_FIELD_HINT_TXT_COLOR,
+      //               fontWeight: FontWeight.w400,
+      //             ),
+      //           ),
+      //         ],
+      //       );
+      //     },
+      //   ),
+      // );
 
 
 
@@ -253,6 +390,7 @@ class SentMsgSectionView extends StatelessWidget {
         alignment: Alignment.centerRight,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Visibility(
                 visible: (msgItem.message == "")? false: true,
@@ -287,32 +425,81 @@ class ImageMsgView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    debugPrint("check image message");
+
 
    List<String> sendFileList =  msgItem.file?.split(",")??[];
 
    DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
    String dateString = dateFormat.format(dateTime);
+
+
+
     return
+      (sendFileList.length ==1)?
+
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Container(
+            width: 160,
+            height: 100,
+            margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+            ),
+            child:
+            (sendFileList[0].isNotEmpty)?
+            ClipRRect(
+              borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+              child: Image.network(
+                sendFileList[0]??"",
+                fit: BoxFit.cover,
+              ),
+            ):
+            ClipRRect(
+              borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+              child: Image.asset(
+                "assets/chat/empty_image.png",
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          const SizedBox(height: MARGIN_MEDIUM,),
+          Text(
+            dateString,
+            style: const TextStyle(
+              fontSize: TEXT_XSMALL,
+              color:TEXT_FIELD_HINT_TXT_COLOR,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
+      ):
 
       Container(
-        width: 150,
-        height: 100,
-        child: ListView.builder(
-          reverse: true,
-          scrollDirection: Axis.vertical,
-          // physics: NeverScrollableScrollPhysics(),
-           shrinkWrap: true,
-          itemCount: sendFileList.length,
-          itemBuilder: (context, index) {
+        constraints:  BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width*0.75,
+            maxHeight: double.infinity),
+        // minWidth: MediaQuery.of(context).size.width*0.8,
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  width: 150,
-                  height: 90,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            GridView.builder(
+               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(), // Disable GridView scrolling
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2, // Number of columns
+               // mainAxisSpacing:5,
+                crossAxisSpacing: MARGIN_MEDIUM,
+                childAspectRatio: 1.5,
+              ),
+              itemCount: sendFileList.length,
+              itemBuilder: (context,index){
+                return Container(
+                  width: IMAGE_MESSAGE_WIDTH,
+                  height: IMAGE_MESSAGE_HEIGHT,
                   margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
@@ -333,26 +520,26 @@ class ImageMsgView extends StatelessWidget {
                       fit: BoxFit.cover,
                     ),
                   ),
-                ),
-                const SizedBox(height: MARGIN_MEDIUM,),
-                Text(
-                  dateString,
-                  style: const TextStyle(
-                    fontSize: TEXT_XSMALL,
-                    color:TEXT_FIELD_HINT_TXT_COLOR,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-            );
-          },
+                );
+
+              },
+
+            ),
+            SizedBox(height: MARGIN_MEDIUM,),
+            Text(
+              dateString,
+              style: const TextStyle(
+                fontSize: TEXT_XSMALL,
+                color:TEXT_FIELD_HINT_TXT_COLOR,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
         ),
       );
-
-
-
   }
 }
+
 // class VideoMsgView extends StatelessWidget {
 //   final ChatDetailPageBloc bloc;
 //   const VideoMsgView({

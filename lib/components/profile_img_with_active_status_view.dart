@@ -42,10 +42,7 @@ class ActiveNowProfileImageView extends StatelessWidget {
         child: CircleAvatar(
           backgroundColor: SUMBITED_PIN_THEME_COLOR,
           radius: ACTIVE_NOW_CHAT_ITEM_PROFILE_RADIUS,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Image.asset('assets/splash/logo.png'),
-          ),
+          child: Image.asset('assets/splash/logo.png'),
         ),
       ):
 
