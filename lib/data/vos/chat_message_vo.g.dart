@@ -9,7 +9,9 @@ part of 'chat_message_vo.dart';
 ChatMessageVO _$ChatMessageVOFromJson(Map<String, dynamic> json) =>
     ChatMessageVO(
       id: json['id'] as String?,
-      file: json['file'] as String?,
+      mediaFile: (json['media_file'] as List<dynamic>?)
+          ?.map((e) => MediaTypeVO.fromJson(e as Map<String, dynamic>))
+          .toList(),
       message: json['message'] as String?,
       name: json['name'] as String?,
       profileUrl: json['profileUrl'] as String?,
@@ -20,7 +22,7 @@ ChatMessageVO _$ChatMessageVOFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$ChatMessageVOToJson(ChatMessageVO instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'file': instance.file,
+      'media_file': instance.mediaFile,
       'message': instance.message,
       'name': instance.name,
       'profileUrl': instance.profileUrl,

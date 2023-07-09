@@ -460,6 +460,8 @@ class ChatMsgSectionView extends StatelessWidget {
         itemBuilder: (context, index) {
           ChatMessageVO message = chatMessageList[index];
 
+          print("check chatMessageObject ${message.toJson()}");
+
           DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
           DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(message.timestamp.toString()));
           String dateString = dateFormat.format(dateTime);

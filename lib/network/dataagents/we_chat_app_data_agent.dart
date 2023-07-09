@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:we_chat_app/data/vos/chat_group_vo.dart';
+import 'package:we_chat_app/data/vos/media_type_vo.dart';
 import 'package:we_chat_app/data/vos/moment_vo.dart';
 import 'package:we_chat_app/data/vos/otp_code_vo.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
@@ -24,6 +25,7 @@ abstract class WeChatAppDataAgent{
   ///Add New Moment
   Future<void> addNewMoment(MomentVO newMoment);
   Future<String> multiUploadFileToFirebase(List<File> image);
+  Future<List<MediaTypeVO>> multiUploadFileToFirebaseForChatMsg(List<File> image);
   Future<void> saveBookmark(UserVO userVO,MomentVO newMoment);
 
 

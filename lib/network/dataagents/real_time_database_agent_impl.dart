@@ -13,6 +13,7 @@ import 'package:we_chat_app/data/models/we_chat_app_model_impl.dart';
 import 'package:we_chat_app/data/vos/chat_group_vo.dart';
 import 'package:we_chat_app/data/vos/chat_history_vo.dart';
 import 'package:we_chat_app/data/vos/chat_message_vo.dart';
+import 'package:we_chat_app/data/vos/media_type_vo.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/network/dataagents/cloud_firestore_data_agent_impl.dart';
 import 'package:we_chat_app/network/dataagents/we_chat_app_data_agent.dart';
@@ -62,13 +63,13 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
     debugPrint("check send Message ${sendMsgFileUrl.length}");
     if (sendMsgFileUrl != null) {
       return mDataAgent
-          .multiUploadFileToFirebase(sendMsgFileUrl)
+          .multiUploadFileToFirebaseForChatMsg(sendMsgFileUrl)
           .then(
-              (downloadUrl) => sendChatMessageVO(senderId,
+              (mediaTypeObjList) => sendChatMessageVO(senderId,
                   receiverId,
                   sendMsg,
                   senderName,
-                  downloadUrl,
+                  mediaTypeObjList,
                   profileUrl,
                   timestamp));
               } else {
@@ -76,7 +77,7 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
           receiverId,
           sendMsg,
           senderName,
-          "",
+          [],
           profileUrl,
           timestamp);
     }
@@ -87,18 +88,45 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
       String receiverId,
       String sendMsg,
       String senderName,
-      String sendMsgFileUrl,
+      List<MediaTypeVO> mediaTypeVOList,
       String profileUrl,
       String timestamp) {
+    // Map<String, dynamic>? dynamicMap = {};
+    // mediaTypeVOList.forEach((mediaTypeVO) {
+    //   dynamicMap[mediaTypeVO.id??"0"] = mediaTypeVO.toJson();
+    // });
+    // Map<String, MediaTypeVO> mediaTypeMap = dynamicMap.map((key, value) =>
+    //     MapEntry(key, MediaTypeVO(id:value['id'],
+    //         fileUrl:value['fileUrl'],fileType:value['fileType'])));
+    //
 
+    // Map<String, MediaTypeVO> mediaTypeMap = {};
+    // mediaTypeVOList.forEach((mediaTypeVO) {
+    //   mediaTypeMap[mediaTypeVO.id??""] = mediaTypeVO;
+    // });
 
+    // Map<String, MediaTypeVO> mediaTypeMap = {};
+    // mediaTypeVOList.forEach((mediaTypeVO) {
+    //   mediaTypeMap[mediaTypeVO.id??""] = mediaTypeVO;
+    // });
+
+    //
+    // Map<String, MediaTypeVO> mediaTypeMap = {};
+    // mediaTypeVOList.forEach((mediaTypeVO) {
+    //   mediaTypeMap[mediaTypeVO.id??""] = mediaTypeVO;
+    // });
+    //
+    // Map<String, Map<String, MediaTypeVO>> convertedMediaTypeMap = mediaTypeMap.map(
+    //       (key, value) => MapEntry(key, value as Map<String, MediaTypeVO>),
+    // );
+//mediaTypeVOList.map((mediaTypeVO) => mediaTypeVO.toJson()).toList()
     databaseRef
         .child(contactsAndMessagesCollection)
         .child(senderId.toString())
         .child(receiverId.toString())
         .child(timestamp)
         .set(ChatMessageVO(
-        file: sendMsgFileUrl,
+        mediaFile: mediaTypeVOList,
         message: sendMsg,
         name: senderName,
         profileUrl: profileUrl,
@@ -112,7 +140,7 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
         .child(senderId.toString())
         .child(timestamp)
         .set(ChatMessageVO(
-        file: sendMsgFileUrl,
+        mediaFile:mediaTypeVOList,
         message: sendMsg,
         name: senderName,
         profileUrl: profileUrl,
@@ -120,86 +148,124 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
         userId: senderId)
         .toJson());
   }
+
+
   @override
   Stream<List<ChatMessageVO>> getChatMessageList(
-      String loginUserId, String receiverId,bool isGroup) {
-    return
-      (isGroup)?
+      String loginUserId,
+      String receiverId,
+      bool isGroup,
+      ) {
+    return (isGroup)
+        ? databaseRef
+        .child(groupsCollection)
+        .child(receiverId)
+        .child(messageDocument)
+        .onValue
+        .map((event) {
+      if (event.snapshot.value != null) {
+        List<ChatMessageVO> chatMessageVOList = [];
 
-      databaseRef
-          .child(groupsCollection)
-          .child(receiverId)
-          .child(messageDocument)
-          .onValue
-          .map((event) {
-        ///for complex key
-        //event.snapshot.value => Map<String,dynamic> => values=> List<Map<String,dynamic>> => NewsFeedVO.fromJson() => List<NewsFeedVO>
-        debugPrint("getChatMessageList ${event.snapshot.value}");
+        Map<dynamic, dynamic> objectMap = event.snapshot.value as Map<dynamic, dynamic>;
 
-        if(event.snapshot.value != null)
-        {
-          Map<Object?, Object?> objectMap = event.snapshot.value
-          as Map<Object?, Object?>; // Replace with the actual object
+        objectMap.forEach((key, value) {
+          if (value != null && value is Map<dynamic, dynamic>) {
+            Map<String, dynamic> elementMap = value.cast<String, dynamic>();
 
-          Map<String?, dynamic> convertedMap = {};
+            // 1. Manually convert the nested map to List<Map<String, dynamic>>?
+            List<dynamic>? mediaFileList = elementMap['media_file'];
+            List<Map<String, dynamic>>? mediaFileMapList = [];
 
-          //  Map<String?, dynamic> convertedMap2 = {};
+            if (mediaFileList != null) {
+              mediaFileMapList = mediaFileList
+                  .where((mediaFile) => mediaFile is Map<dynamic, dynamic>)
+                  .map<Map<String, dynamic>>((mediaFile) => Map<String, dynamic>.from(mediaFile.cast<String, dynamic>()))
+                  .toList();
+            }
+            // 2. convert from List<Map<String, dynamic>>? to List<MediaTypeVO>
+            List<MediaTypeVO> mediaTypeList = convertMapListToMediaTypeList(mediaFileMapList);
 
-          objectMap.forEach((key, value) {
-            convertedMap[key.toString()] = value;
-            // convertedMap[key.toString()].forEach((key, value){
-            //   convertedMap2[key.toString()] = value;
-            // });
-          });
-          return (convertedMap.values).map<ChatMessageVO>((element) {
-            return ChatMessageVO.fromJson(Map<String, dynamic>.from(element));
-          }).toList();
-        }else{
-          return List.empty();
-        }
+            ChatMessageVO chatMessageVO = ChatMessageVO(
+              mediaFile: mediaTypeList,
+              message: elementMap['message'],
+              name: elementMap['name'],
+              profileUrl: elementMap['profileUrl'],
+              timestamp: elementMap['timestamp'],
+              userId: elementMap['userId'],
+            );
 
+            chatMessageVOList.add(chatMessageVO);
+          }
+        });
 
-
-      }):
-
-      databaseRef
+        return chatMessageVOList;
+      } else {
+        return List.empty();
+      }
+    })
+        :
+    databaseRef
         .child(contactsAndMessagesCollection)
         .child(loginUserId)
         .child(receiverId)
         .onValue
         .map((event) {
-      ///for complex key
-      //event.snapshot.value => Map<String,dynamic> => values=> List<Map<String,dynamic>> => NewsFeedVO.fromJson() => List<NewsFeedVO>
-      debugPrint("getChatMessageList ${event.snapshot.value}");
+      if (event.snapshot.value != null) {
+        Map<dynamic, dynamic> objectMap = event.snapshot.value as Map<dynamic, dynamic>;
 
-      if(event.snapshot.value != null)
-        {
-          Map<Object?, Object?> objectMap = event.snapshot.value
-          as Map<Object?, Object?>; // Replace with the actual object
+        List<ChatMessageVO> chatMessageVOList = [];
 
-          Map<String?, dynamic> convertedMap = {};
+        objectMap.forEach((key, value) {
+          if (value != null && value is Map<dynamic, dynamic>) {
+            Map<String, dynamic> elementMap = value.cast<String, dynamic>();
 
-          //  Map<String?, dynamic> convertedMap2 = {};
+            // 1. Manually convert the nested map to List<Map<String, dynamic>>?
+            List<dynamic>? mediaFileList = elementMap['media_file'];
+            List<Map<String, dynamic>>? mediaFileMapList = [];
 
-          objectMap.forEach((key, value) {
-            convertedMap[key.toString()] = value;
-            // convertedMap[key.toString()].forEach((key, value){
-            //   convertedMap2[key.toString()] = value;
-            // });
-          });
-          return (convertedMap.values).map<ChatMessageVO>((element) {
-            return ChatMessageVO.fromJson(Map<String, dynamic>.from(element));
-          }).toList();
-        }else{
+            if (mediaFileList != null) {
+              mediaFileMapList = mediaFileList
+                  .where((mediaFile) => mediaFile is Map<dynamic, dynamic>)
+                  .map<Map<String, dynamic>>((mediaFile) => Map<String, dynamic>.from(mediaFile.cast<String, dynamic>()))
+                  .toList();
+            }
+
+            // 2. convert from List<Map<String, dynamic>>? to List<MediaTypeVO>
+            List<MediaTypeVO> mediaTypeList = convertMapListToMediaTypeList(mediaFileMapList);
+
+            ChatMessageVO chatMessageVO = ChatMessageVO(
+              mediaFile: mediaTypeList,
+              message: elementMap['message'],
+              name: elementMap['name'],
+              profileUrl: elementMap['profileUrl'],
+              timestamp: elementMap['timestamp'],
+              userId: elementMap['userId'],
+            );
+
+            chatMessageVOList.add(chatMessageVO);
+          }
+        });
+
+        return chatMessageVOList;
+      } else {
         return List.empty();
       }
-
-
-
     });
-
-//  }
   }
+
+
+  List<MediaTypeVO> convertMapListToMediaTypeList(List<Map<String, dynamic>> mapList) {
+    List<MediaTypeVO> mediaTypeList = mapList.map((map) {
+      return MediaTypeVO(
+        fileType: map['file_type'] as String,
+        fileUrl: map['file_url'] as String,
+        id: map['id'] as String,
+      );
+    }).toList();
+
+    return mediaTypeList;
+  }
+
 
   @override
   Stream<List<ChatHistoryVO>> getChatHistoryList(String loginUserId) {
@@ -422,17 +488,16 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
       String timestamp)
     {
 
-
       if (sendMsgFileUrl != null) {
         return mDataAgent
-            .multiUploadFileToFirebase(sendMsgFileUrl)
+            .multiUploadFileToFirebaseForChatMsg(sendMsgFileUrl)
             .then(
-                (downloadUrl) => sendGroupChatMessageVO(
+                (mediaTypeVOList) => sendGroupChatMessageVO(
                 senderId,
                 receiverId,
                 sendMsg,
                 senderName,
-                downloadUrl,
+                mediaTypeVOList,
                 profileUrl,
                 timestamp));
       } else {
@@ -441,7 +506,7 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
             receiverId,
             sendMsg,
             senderName,
-            "",
+            [],
             profileUrl,
             timestamp);
       }
@@ -456,10 +521,27 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
       String receiverId,
       String sendMsg,
       String senderName,
-      String sendMsgFileUrl,
+      List<MediaTypeVO> mediaTypeVOList,
       String profileUrl,
       String timestamp) {
+    // Map<String, dynamic>? dynamicMap = {};
+    // mediaTypeVOList.forEach((mediaTypeVO) {
+    //   dynamicMap[mediaTypeVO.id??"0"] = mediaTypeVO.toJson();
+    // });
+    // Map<String, MediaTypeVO> mediaTypeMap = dynamicMap.map((key, value) =>
+    //     MapEntry(key, MediaTypeVO(id:value['id'],
+    //         fileUrl:value['fileUrl'],fileType:value['fileType'])));
 
+    // Map<String, MediaTypeVO> mediaTypeMap = {};
+    // mediaTypeVOList.forEach((mediaTypeVO) {
+    //   mediaTypeMap[mediaTypeVO.id??""] = mediaTypeVO;
+    // });
+
+    // Map<String, MediaTypeVO> mediaTypeMap = {};
+    // mediaTypeVOList.forEach((mediaTypeVO) {
+    //   mediaTypeMap[mediaTypeVO.id??""] = mediaTypeVO;
+    // });
+// mediaTypeVOList.map((mediaTypeVO) => mediaTypeVO.toJson()).toList()
 
     return databaseRef
         .child(groupsCollection)
@@ -467,7 +549,7 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
         .child(messageDocument)
         .child(timestamp)
         .set(ChatMessageVO(
-        file: sendMsgFileUrl,
+        mediaFile:mediaTypeVOList,
         message: sendMsg,
         name: senderName,
         profileUrl: profileUrl,

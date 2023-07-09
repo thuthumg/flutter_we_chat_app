@@ -5,10 +5,11 @@ import 'package:video_player/video_player.dart';
 import 'package:we_chat_app/blocs/chat_detail_page_bloc.dart';
 import 'package:we_chat_app/components/profile_img_with_active_status_view.dart';
 import 'package:we_chat_app/data/vos/chat_message_vo.dart';
+import 'package:we_chat_app/data/vos/media_type_vo.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
-import 'package:we_chat_app/pages/chat_detail_page.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
+import 'package:we_chat_app/utils/constants.dart';
 
 
 class SentMsgAndReceiveMsgViewItem extends StatelessWidget {
@@ -69,7 +70,7 @@ class ReceiveMsgSectionView extends StatelessWidget {
 
                 SizedBox(height: MARGIN_MEDIUM,),
                 Visibility(
-                    visible: (msgItem.file == "")? false: true,
+                    visible: (msgItem.mediaFile?.length == 0)? false: true,
                     child: ReceiveImgOrVideoMsgView(msgItem: msgItem)),
               ],
             ),
@@ -89,8 +90,9 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    List<String> sendFileList =  msgItem.file?.split(",")??[];
-
+   /// List<String> sendFileList =  msgItem.file?.split(",")??[];
+   List<MediaTypeVO> sendFileList =  msgItem.mediaFile as List<MediaTypeVO>;
+  //  List<MediaTypeVO> sendFileList =  msgItem.mediaFile?.values.toList() ?? [];
     DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
     DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
     String dateString = dateFormat.format(dateTime);
@@ -145,11 +147,11 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
             ),
             child:
-            (sendFileList[0].isNotEmpty)?
+            (sendFileList[0].fileUrl == "")?
             ClipRRect(
               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
               child: Image.network(
-                sendFileList[0]??"",
+                sendFileList[0].fileUrl??"",
                 fit: BoxFit.cover,
               ),
             ):
@@ -197,11 +199,11 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
                   ),
                   child:
-                  (sendFileList[index].isNotEmpty)?
+                  (sendFileList[index].fileUrl == "")?
                   ClipRRect(
                     borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
                     child: Image.network(
-                      sendFileList[index]??"",
+                      sendFileList[index].fileUrl??"",
                       fit: BoxFit.cover,
                     ),
                   ):
@@ -228,99 +230,8 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
           ],
         ),
       );
-
-
-
-      //----------------
-      // Container(
-      //   width: 150,
-      //   height: 100,
-      //   child: ListView.builder(
-      //     reverse: true,
-      //     scrollDirection: Axis.vertical,
-      //      physics: NeverScrollableScrollPhysics(),
-      //      shrinkWrap: true,
-      //     itemCount: sendFileList.length,
-      //     itemBuilder: (context, index) {
-      //
-      //       return Column(
-      //         crossAxisAlignment: CrossAxisAlignment.end,
-      //         children: [
-      //           Container(
-      //             width: 150,
-      //             height: 90,
-      //             margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
-      //             decoration: BoxDecoration(
-      //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-      //             ),
-      //             child:
-      //             (sendFileList[index].isNotEmpty)?
-      //             ClipRRect(
-      //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-      //               child: Image.network(
-      //                 sendFileList[index]??"",
-      //                 fit: BoxFit.cover,
-      //               ),
-      //             ):
-      //             ClipRRect(
-      //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-      //               child: Image.asset(
-      //                 "assets/chat/empty_image.png",
-      //                 fit: BoxFit.cover,
-      //               ),
-      //             ),
-      //           ),
-      //           const SizedBox(height: MARGIN_MEDIUM,),
-      //           Text(
-      //             dateString,
-      //             style: const TextStyle(
-      //               fontSize: TEXT_XSMALL,
-      //               color:TEXT_FIELD_HINT_TXT_COLOR,
-      //               fontWeight: FontWeight.w400,
-      //             ),
-      //           ),
-      //         ],
-      //       );
-      //     },
-      //   ),
-      // );
-
-
-
   }
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.end,
-  //     children: [
-  //       Container(
-  //         width: 150,
-  //         height: 90,
-  //         margin: const EdgeInsets.only(
-  //             top:MARGIN_MEDIUM,),
-  //         decoration: BoxDecoration(
-  //           borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-  //         ),
-  //         child: ClipRRect(
-  //           borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-  //           child: Image.asset(
-  //             msgItem.file??"",
-  //             fit: BoxFit.cover,
-  //           ),
-  //         ),
-  //       ),
-  //       SizedBox(height: MARGIN_MEDIUM,),
-  //       const Text(
-  //         '12:30AM',
-  //         style: TextStyle(
-  //           fontSize: TEXT_XSMALL,
-  //           color:TEXT_FIELD_HINT_TXT_COLOR,
-  //           fontWeight: FontWeight.w400,
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
+
 }
 
 class ReceiveTextMsgView extends StatelessWidget {
@@ -397,7 +308,7 @@ class SentMsgSectionView extends StatelessWidget {
                 child:  TextMsgView(msgItem: msgItem),),
             const SizedBox(height: MARGIN_MEDIUM,),
             Visibility(
-              visible: (msgItem.file == "")? false: true,
+              visible: (msgItem.mediaFile?.length == 0)? false: true,
               child:
               ImageMsgView(msgItem: msgItem))
     //         Visibility(
@@ -422,18 +333,20 @@ class ImageMsgView extends StatelessWidget {
   });
   final ChatMessageVO msgItem;
 
+
+
   @override
   Widget build(BuildContext context) {
 
-
-
-   List<String> sendFileList =  msgItem.file?.split(",")??[];
+  //  List<String> sendFileList =  msgItem.file?.split(",")??[];
+    List<MediaTypeVO> sendFileList =   msgItem.mediaFile??[];//convertToList(msgItem.mediaFile);
+  // List<MediaTypeVO> sendFileList =  msgItem.mediaFile?.values.toList()??[];
 
    DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
    String dateString = dateFormat.format(dateTime);
 
-
+  print("check file url ${sendFileList[0].fileUrl}");
 
     return
       (sendFileList.length ==1)?
@@ -449,11 +362,11 @@ class ImageMsgView extends StatelessWidget {
               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
             ),
             child:
-            (sendFileList[0].isNotEmpty)?
+            (sendFileList[0].fileUrl != "")?
             ClipRRect(
               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
               child: Image.network(
-                sendFileList[0]??"",
+                sendFileList[0].fileUrl??"",
                 fit: BoxFit.cover,
               ),
             ):
@@ -505,11 +418,11 @@ class ImageMsgView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
                   ),
                   child:
-                  (sendFileList[index].isNotEmpty)?
+                  (sendFileList[index].fileUrl != "")?
                   ClipRRect(
                     borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
                     child: Image.network(
-                      sendFileList[index]??"",
+                      sendFileList[index].fileUrl??"",
                       fit: BoxFit.cover,
                     ),
                   ):
@@ -671,8 +584,9 @@ class VideoMsgView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     debugPrint("check video message");
-    List<String> sendFileList =  msgItem.file?.split(",")??[];
-
+   // List<String> sendFileList =  msgItem.file?.split(",")??[];
+    List<MediaTypeVO> sendFileList = msgItem.mediaFile??[];//convertToList(msgItem.mediaFile) ;
+  //  List<MediaTypeVO> sendFileList =  msgItem.mediaFile?.values.toList()??[];
     DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
     DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
     String dateString = dateFormat.format(dateTime);

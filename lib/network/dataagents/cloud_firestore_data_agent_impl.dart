@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:we_chat_app/data/vos/media_type_vo.dart';
 import 'package:we_chat_app/data/vos/moment_vo.dart';
 import 'package:we_chat_app/data/vos/otp_code_vo.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
@@ -143,6 +144,31 @@ class CloudFirestoreDataAgentImpl extends WeChatAppDataAgent{
         .set(newMoment.toJson());
   }
   @override
+  Future<List<MediaTypeVO>> multiUploadFileToFirebaseForChatMsg(List<File> imagesOrVideos) async {
+    // List<String> strImagesOrVideos = [];
+
+    List<MediaTypeVO> strImagesOrVideos = [];
+    for (var index = 0; index < imagesOrVideos.length; index++) {
+      var element = imagesOrVideos[index];
+   // for (var element in imagesOrVideos) {
+      var taskSnapshot = await firebaseStorage
+          .ref(fileUploadRef)
+          .child("${DateTime.now().millisecondsSinceEpoch}")
+          .putFile(element);
+
+      var downloadURL = await taskSnapshot.ref.getDownloadURL();
+      var metaData = await taskSnapshot.ref.getMetadata();
+      var contentType = metaData.contentType;
+      strImagesOrVideos.add(MediaTypeVO(
+        id: (index+1).toString(),
+          fileType: contentType,
+          fileUrl: downloadURL
+      ));
+    }
+//strImagesOrVideos.join(",");
+    return strImagesOrVideos;
+  }
+  @override
   Future<String> multiUploadFileToFirebase(List<File> imagesOrVideos) async {
     List<String> strImagesOrVideos = [];
 
@@ -153,8 +179,8 @@ class CloudFirestoreDataAgentImpl extends WeChatAppDataAgent{
           .putFile(element);
 
       var downloadURL = await taskSnapshot.ref.getDownloadURL();
-      //var metaData = await taskSnapshot.ref.getMetadata();
-      //var contentType = metaData.contentType;
+     // var metaData = await taskSnapshot.ref.getMetadata();
+     // var contentType = metaData.contentType;
       strImagesOrVideos.add(downloadURL);
     }
 

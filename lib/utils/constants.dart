@@ -13,6 +13,7 @@
 //   DECEMBER
 // }
 import 'package:intl/intl.dart';
+import 'package:we_chat_app/data/vos/media_type_vo.dart';
 
 List<String> monthsList =
     [
@@ -114,4 +115,17 @@ String? convertTimeToText(String? dataDate) {
   }
 
   return convTime;
+}
+
+
+List<MediaTypeVO> convertToList(List<Map<String, dynamic>>? inputList) {
+  return inputList?.map((map) {
+
+
+    return MediaTypeVO(
+      id: map['id'],
+      fileUrl: map['file_url'],
+      fileType: map['file_type'],
+    );
+  }).toList()??[];
 }
