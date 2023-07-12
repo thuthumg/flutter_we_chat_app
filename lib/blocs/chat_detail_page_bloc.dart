@@ -261,6 +261,15 @@ class ChatDetailPageBloc extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> initVideoWithNetworkLink(String path) async {
+
+    print("initvideowithnetwork ${path}");
+    _videoController?.dispose();
+    _videoController = VideoPlayerController.network(path);
+    await _videoController!.initialize();
+    notifyListeners();
+  }
+
   Future<void> play() async {
     await _videoController!.play();
     notifyListeners();

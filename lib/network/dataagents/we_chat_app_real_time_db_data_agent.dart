@@ -11,6 +11,7 @@ abstract class WeChatAppRealTimeDBDataAgent {
 
   Stream<List<ChatMessageVO>> getChatMessageList(String loginUserId,String receiverId,bool isGroup);
   Stream<List<ChatHistoryVO>> getChatHistoryList(String loginUserId);
+
   Future<void> createChatGroup(
       ChatGroupVO chatGroupVO
       );

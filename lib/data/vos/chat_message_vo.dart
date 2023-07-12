@@ -14,8 +14,6 @@ class ChatMessageVO {
   @JsonKey(name: "media_file")
    List<MediaTypeVO>? mediaFile;
  // List<Map<String, dynamic>>? mediaFile;
- // Map<String, MediaTypeVO>? mediaFile;
-
 
   @JsonKey(name: "message")
   String? message;
@@ -39,5 +37,17 @@ class ChatMessageVO {
   factory ChatMessageVO.fromJson(Map<String, dynamic> json) =>
       _$ChatMessageVOFromJson(json);
 
-  Map<String, dynamic> toJson() => _$ChatMessageVOToJson(this);
+ // Map<String, dynamic> toJson() => _$ChatMessageVOToJson(this);
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'media_file': mediaFile?.map((media) => media.toJson()).toList(),
+      'message': message,
+      'name': name,
+      'profileUrl': profileUrl,
+      'timestamp': timestamp,
+      'userId': userId,
+    };
+  }
 }

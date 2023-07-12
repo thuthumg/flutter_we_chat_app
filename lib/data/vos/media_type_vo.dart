@@ -20,4 +20,6 @@ class MediaTypeVO {
       _$MediaTypeVOFromJson(json);
 
   Map<String, dynamic> toJson() => _$MediaTypeVOToJson(this);
+
+
 }

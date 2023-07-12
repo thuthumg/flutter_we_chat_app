@@ -27,15 +27,19 @@ class SentMsgAndReceiveMsgViewItem extends StatelessWidget {
 
     return (loginUserVO?.id == msgItem.userId)
         ? SentMsgSectionView(bloc:bloc,msgItem: msgItem)
-        : ReceiveMsgSectionView(msgItem: msgItem);
+        : ReceiveMsgSectionView(bloc:bloc,msgItem: msgItem);
 
   }
 }
 
 class ReceiveMsgSectionView extends StatelessWidget {
+
+  final ChatDetailPageBloc bloc;
+
   const ReceiveMsgSectionView({
     super.key,
     required this.msgItem,
+    required this.bloc
   });
 
   final ChatMessageVO msgItem;
@@ -71,7 +75,7 @@ class ReceiveMsgSectionView extends StatelessWidget {
                 SizedBox(height: MARGIN_MEDIUM,),
                 Visibility(
                     visible: (msgItem.mediaFile?.length == 0)? false: true,
-                    child: ReceiveImgOrVideoMsgView(msgItem: msgItem)),
+                    child: ReceiveImgOrVideoMsgView(bloc:bloc,msgItem: msgItem)),
               ],
             ),
           ],
@@ -81,9 +85,12 @@ class ReceiveMsgSectionView extends StatelessWidget {
 }
 
 class ReceiveImgOrVideoMsgView extends StatelessWidget {
+  final ChatDetailPageBloc bloc;
+
   const ReceiveImgOrVideoMsgView({
     super.key,
-    required this.msgItem
+    required this.msgItem,
+    required this.bloc
   });
   final ChatMessageVO msgItem;
 
@@ -96,6 +103,13 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
     DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
     DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
     String dateString = dateFormat.format(dateTime);
+
+    if(sendFileList.length == 1 &&
+        sendFileList[0].fileType.toString().contains("video"))
+      {
+        //bloc.initVideoWithNetworkLink(sendFileList[0].fileUrl.toString());
+      }
+
     return
       // Column(
       //   crossAxisAlignment: CrossAxisAlignment.end,
@@ -135,7 +149,9 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
       //     ),
       //   ],
       // )
-      (sendFileList.length ==1)?
+      (sendFileList.length == 1)?
+     // (sendFileList[0].fileType.toString().contains("video"))?
+    //  VideoMsgView(bloc: bloc,msgItem: msgItem):
       Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -147,7 +163,7 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
             ),
             child:
-            (sendFileList[0].fileUrl == "")?
+            (sendFileList[0].fileUrl != "")?
             ClipRRect(
               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
               child: Image.network(
@@ -191,7 +207,15 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
               ),
               itemCount: sendFileList.length,
               itemBuilder: (context,index){
-                return Container(
+
+                if(sendFileList[index].fileType.toString().contains("video") )
+                    bloc.initVideoWithNetworkLink(sendFileList[index].fileUrl.toString());
+
+                print("check file Type = "+ sendFileList[index].fileType.toString());
+
+                return  (sendFileList[index].fileType.toString().contains("video"))?
+                VideoMsgView(bloc: bloc,msgItem: msgItem):
+                Container(
                   width: IMAGE_MESSAGE_WIDTH,
                   height: IMAGE_MESSAGE_HEIGHT,
                   margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
@@ -199,7 +223,7 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
                   ),
                   child:
-                  (sendFileList[index].fileUrl == "")?
+                  (sendFileList[index].fileUrl != "")?
                   ClipRRect(
                     borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
                     child: Image.network(
@@ -214,7 +238,9 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
                       fit: BoxFit.cover,
                     ),
                   ),
-                );
+                )
+
+                ;
               },
 
             ),
@@ -310,7 +336,7 @@ class SentMsgSectionView extends StatelessWidget {
             Visibility(
               visible: (msgItem.mediaFile?.length == 0)? false: true,
               child:
-              ImageMsgView(msgItem: msgItem))
+              ImageMsgOrVideoMsgView(bloc:bloc,msgItem: msgItem))
     //         Visibility(
     //             visible: (msgItem.file == "")? false: true,
     //             child:
@@ -325,11 +351,14 @@ class SentMsgSectionView extends StatelessWidget {
 }
 
 
-class ImageMsgView extends StatelessWidget {
+class ImageMsgOrVideoMsgView extends StatelessWidget {
 
-  const ImageMsgView({
+  final ChatDetailPageBloc bloc;
+
+  const ImageMsgOrVideoMsgView({
     super.key,
-    required this.msgItem
+    required this.msgItem,
+    required this.bloc
   });
   final ChatMessageVO msgItem;
 
@@ -346,7 +375,15 @@ class ImageMsgView extends StatelessWidget {
    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
    String dateString = dateFormat.format(dateTime);
 
-  print("check file url ${sendFileList[0].fileUrl}");
+  print("check file url ${sendFileList[0].fileUrl} ------------ ${sendFileList[0].fileType}");
+
+
+    if(sendFileList.length ==1 &&
+        sendFileList[0].fileType.toString().contains("video") ) {
+
+      bloc.initVideoWithNetworkLink(sendFileList[0].fileUrl.toString());
+    }
+
 
     return
       (sendFileList.length ==1)?
@@ -363,13 +400,17 @@ class ImageMsgView extends StatelessWidget {
             ),
             child:
             (sendFileList[0].fileUrl != "")?
+            (sendFileList[0].fileType.toString().contains("video"))?
+            VideoMsgView(bloc: bloc,msgItem: msgItem)
+           :
             ClipRRect(
               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
               child: Image.network(
                 sendFileList[0].fileUrl??"",
                 fit: BoxFit.cover,
               ),
-            ):
+            )
+              :
             ClipRRect(
               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
               child: Image.asset(
@@ -410,7 +451,17 @@ class ImageMsgView extends StatelessWidget {
               ),
               itemCount: sendFileList.length,
               itemBuilder: (context,index){
-                return Container(
+                print("check video type ${sendFileList[index].fileType.toString()}");
+                if(sendFileList[index].fileType.toString().contains("video") ) {
+                  print("video link");
+                  bloc.initVideoWithNetworkLink(sendFileList[index].fileUrl.toString());
+                }
+
+                print("check file Type = "+ sendFileList[index].fileType.toString());
+
+                return  (sendFileList[index].fileType.toString().contains("video"))?
+                VideoMsgView(bloc: bloc,msgItem: msgItem):
+                 Container(
                   width: IMAGE_MESSAGE_WIDTH,
                   height: IMAGE_MESSAGE_HEIGHT,
                   margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
@@ -583,6 +634,7 @@ class VideoMsgView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+   // bloc.initVideo(msgItem.mediaFile.toString());
     debugPrint("check video message");
    // List<String> sendFileList =  msgItem.file?.split(",")??[];
     List<MediaTypeVO> sendFileList = msgItem.mediaFile??[];//convertToList(msgItem.mediaFile) ;
