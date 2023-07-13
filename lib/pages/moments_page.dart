@@ -51,6 +51,9 @@ class MomentsPage extends StatelessWidget{
           onTapBookMark: (momentVO){
               bloc.saveBookMark(bloc.userVO!, momentVO);
           },
+            onTapFavourite: (momentVO){
+              bloc.saveFavourite(bloc.userVO!, momentVO);
+            },
           ),
         ),
       ),

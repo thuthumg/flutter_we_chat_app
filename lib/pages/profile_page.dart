@@ -128,6 +128,9 @@ class BookmarkMomentsListView extends StatelessWidget {
               onTapBookMark: (momentVO){
                 bloc.saveBookMark(bloc.mUserVO!, momentVO);
               },
+              onTapFavourite: (momentVO){
+                bloc.saveFavourite(bloc.mUserVO!, momentVO);
+              },
 
             ),
           )

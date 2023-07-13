@@ -14,6 +14,8 @@ abstract class WeChatAppModel{
 
   Stream<List<MomentVO>> getMomentVOByUserId(String userVOId);
 
+  Stream<List<MomentVO>> getMomentVOByUserIdForFavouriteMoment(String userVOId);
+
   Future<void> addNewMoment(UserVO? userVO,String description,List<File> imageFile);
 
   Future<void> uploadImages(List<File> imagesOrVideos);
@@ -21,6 +23,9 @@ abstract class WeChatAppModel{
   Stream<List<MomentVO>> getMomentsList();
 
   Future<void> saveBookmark(UserVO userVO,MomentVO newMoment);
+
+  Future<void> saveFavourite(UserVO userVO,MomentVO newMoment);
+
 
   Future<void> saveQRScanUserVO(String loginUserVOId,String scanUserVOId);
 

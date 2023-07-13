@@ -31,7 +31,11 @@ class MomentVO {
 
 
   @JsonKey(name: "isUserBookMarkFlag")
-  bool isUserBookMarkFlag = false;
+  bool? isUserBookMarkFlag;
+
+  @JsonKey(name: "isUserFavouriteFlag")
+  bool? isUserFavouriteFlag;
+
 
   MomentVO(
       {this.id,
@@ -46,11 +50,23 @@ class MomentVO {
 
   @override
   String toString() {
-    return 'MomentVO{id: $id, name: $name, description: $description, phoneNumber: $phoneNumber, photoOrVideoUrlLink: $photoOrVideoUrlLink, profileUrl: $profileUrl, timestamp: $timestamp, likedIdList: $likedIdList, isUserBookMarkFlag: $isUserBookMarkFlag}';
+    return 'MomentVO{id: $id, name: $name, '
+        'description: $description, phoneNumber: $phoneNumber,'
+        'photoOrVideoUrlLink: $photoOrVideoUrlLink, profileUrl: $profileUrl, '
+        'timestamp: $timestamp, likedIdList: $likedIdList, '
+        'isUserBookMarkFlag: $isUserBookMarkFlag ,isUserFavouriteFlag: $isUserFavouriteFlag}';
   }
 
   factory MomentVO.fromJson(Map<String, dynamic> json) =>
       _$MomentVOFromJson(json);
 
   Map<String, dynamic> toJson() => _$MomentVOToJson(this);
+
+  @override
+  bool operator ==(Object other) {
+    return hashCode == other.hashCode;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 }

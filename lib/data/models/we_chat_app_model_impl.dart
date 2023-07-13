@@ -103,9 +103,20 @@ class WeChatAppModelImpl extends WeChatAppModel {
   }
 
   @override
+  Stream<List<MomentVO>> getMomentVOByUserIdForFavouriteMoment(String userVOId) {
+    return mDataAgent.getMomentVOByUserIdForFavouriteMoment(userVOId);
+  }
+
+  @override
   Future<void> saveBookmark(UserVO userVO, MomentVO newMoment) {
     return mDataAgent.saveBookmark(userVO, newMoment);
   }
+
+  @override
+  Future<void> saveFavourite(UserVO userVO, MomentVO newMoment) {
+    return mDataAgent.saveFavourite(userVO, newMoment);
+  }
+
 
   @override
   Future<void> saveQRScanUserVO(String loginUserVOId, String scanUserVOId) {

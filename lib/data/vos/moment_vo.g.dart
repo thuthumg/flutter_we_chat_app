@@ -17,7 +17,9 @@ MomentVO _$MomentVOFromJson(Map<String, dynamic> json) => MomentVO(
       likedIdList: (json['liked_id_list'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
-    )..isUserBookMarkFlag = json['isUserBookMarkFlag'] as bool;
+    )
+      ..isUserBookMarkFlag = json['isUserBookMarkFlag'] as bool?
+      ..isUserFavouriteFlag = json['isUserFavouriteFlag'] as bool?;
 
 Map<String, dynamic> _$MomentVOToJson(MomentVO instance) => <String, dynamic>{
       'id': instance.id,
@@ -29,4 +31,5 @@ Map<String, dynamic> _$MomentVOToJson(MomentVO instance) => <String, dynamic>{
       'timestamp': instance.timestamp,
       'liked_id_list': instance.likedIdList,
       'isUserBookMarkFlag': instance.isUserBookMarkFlag,
+      'isUserFavouriteFlag': instance.isUserFavouriteFlag,
     };

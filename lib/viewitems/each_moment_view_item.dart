@@ -8,12 +8,14 @@ import 'package:we_chat_app/viewitems/each_image_or_video_view_item.dart';
 class EachMomentViewItem extends StatelessWidget {
   final MomentVO? mMomentVO;
   final Function(MomentVO) onTapBookmark;
+  final Function(MomentVO) onTapFavourite;
   final String loginUserPhoneNum;
   const EachMomentViewItem({
     super.key,
     required this.mMomentVO,
     required this.onTapBookmark,
-    required this.loginUserPhoneNum
+    required this.loginUserPhoneNum,
+    required this.onTapFavourite
   });
 
   @override
@@ -42,6 +44,9 @@ class EachMomentViewItem extends StatelessWidget {
         onTapBookMark: (mMomentVO){
           onTapBookmark(mMomentVO);
         },
+          onTapFavourite: (mMomentVO){
+            onTapFavourite(mMomentVO);
+          },
         ),
         SizedBox(height: MARGIN_MEDIUM,),
 
@@ -60,6 +65,7 @@ class LikeCommentSaveActionSectionView extends StatelessWidget {
   final MomentVO? mMomentVO;
 
   final Function(MomentVO) onTapBookMark;
+  final Function(MomentVO) onTapFavourite;
 
   final String loginUserPhoneNum;
 
@@ -67,7 +73,8 @@ class LikeCommentSaveActionSectionView extends StatelessWidget {
     super.key,
     required this.mMomentVO,
     required this.onTapBookMark,
-    required this.loginUserPhoneNum
+    required this.loginUserPhoneNum,
+    required this.onTapFavourite
 
   });
 
@@ -83,9 +90,14 @@ class LikeCommentSaveActionSectionView extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-         const LikeActionView(
-           likeCount: "0",
-           isSelected: false,
+         GestureDetector(
+           onTap: (){
+             onTapFavourite(mMomentVO!);
+           },
+           child: LikeActionView(
+             likeCount: "0",
+             isSelected: mMomentVO?.isUserFavouriteFlag??false,
+           ),
          ),
           Row(
             children: [

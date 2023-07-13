@@ -27,11 +27,12 @@ abstract class WeChatAppDataAgent{
   Future<String> multiUploadFileToFirebase(List<File> image);
   Future<List<MediaTypeVO>> multiUploadFileToFirebaseForChatMsg(List<File> image);
   Future<void> saveBookmark(UserVO userVO,MomentVO newMoment);
-
+  Future<void> saveFavourite(UserVO userVO,MomentVO newMoment);
 
   ///Get New Moment
   Stream<List<MomentVO>> getMomentsList();
   Stream<List<MomentVO>> getMomentsListByUserId(String userVOId);
+  Stream<List<MomentVO>> getMomentVOByUserIdForFavouriteMoment(String userVOId);
 
   ///get user object
   Future<void> saveQRScanUserVO(String loginUserVOId,String scanUserVOId);
