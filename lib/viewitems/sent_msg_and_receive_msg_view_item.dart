@@ -10,6 +10,7 @@ import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 import 'package:we_chat_app/utils/constants.dart';
+import 'package:we_chat_app/viewitems/video_view_custom_widget.dart';
 
 
 class SentMsgAndReceiveMsgViewItem extends StatelessWidget {
@@ -151,7 +152,7 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
       // )
       (sendFileList.length == 1)?
      // (sendFileList[0].fileType.toString().contains("video"))?
-    //  VideoMsgView(bloc: bloc,msgItem: msgItem):
+     // VideoMsgView(bloc: bloc,msgItem: msgItem,videoUrl:sendFileList[0].fileUrl??""):
       Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -164,6 +165,9 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
             ),
             child:
             (sendFileList[0].fileUrl != "")?
+            (sendFileList[0].fileType.toString().contains("video"))?
+            VideoMsgView(bloc: bloc,msgItem: msgItem,videoUrl:sendFileList[0].fileUrl??"")
+                :
             ClipRRect(
               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
               child: Image.network(
@@ -209,13 +213,12 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
               itemBuilder: (context,index){
 
                 if(sendFileList[index].fileType.toString().contains("video") )
-                    bloc.initVideoWithNetworkLink(sendFileList[index].fileUrl.toString());
+                  //  bloc.initVideoWithNetworkLink(sendFileList[index].fileUrl.toString());
 
                 print("check file Type = "+ sendFileList[index].fileType.toString());
 
-                return  (sendFileList[index].fileType.toString().contains("video"))?
-                VideoMsgView(bloc: bloc,msgItem: msgItem):
-                Container(
+                return
+                 Container(
                   width: IMAGE_MESSAGE_WIDTH,
                   height: IMAGE_MESSAGE_HEIGHT,
                   margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
@@ -224,6 +227,9 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
                   ),
                   child:
                   (sendFileList[index].fileUrl != "")?
+                  (sendFileList[index].fileType.toString().contains("video"))?
+                  VideoMsgView(bloc: bloc,msgItem: msgItem,videoUrl:sendFileList[index].fileUrl??"" ,):
+
                   ClipRRect(
                     borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
                     child: Image.network(
@@ -381,7 +387,7 @@ class ImageMsgOrVideoMsgView extends StatelessWidget {
     if(sendFileList.length ==1 &&
         sendFileList[0].fileType.toString().contains("video") ) {
 
-      bloc.initVideoWithNetworkLink(sendFileList[0].fileUrl.toString());
+     // bloc.initVideoWithNetworkLink(sendFileList[0].fileUrl.toString());
     }
 
 
@@ -401,7 +407,7 @@ class ImageMsgOrVideoMsgView extends StatelessWidget {
             child:
             (sendFileList[0].fileUrl != "")?
             (sendFileList[0].fileType.toString().contains("video"))?
-            VideoMsgView(bloc: bloc,msgItem: msgItem)
+            VideoMsgView(bloc: bloc,msgItem: msgItem,videoUrl:sendFileList[0].fileUrl??"")
            :
             ClipRRect(
               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
@@ -454,14 +460,12 @@ class ImageMsgOrVideoMsgView extends StatelessWidget {
                 print("check video type ${sendFileList[index].fileType.toString()}");
                 if(sendFileList[index].fileType.toString().contains("video") ) {
                   print("video link");
-                  bloc.initVideoWithNetworkLink(sendFileList[index].fileUrl.toString());
+                 // bloc.initVideoWithNetworkLink(sendFileList[index].fileUrl.toString());
                 }
 
                 print("check file Type = "+ sendFileList[index].fileType.toString());
 
-                return  (sendFileList[index].fileType.toString().contains("video"))?
-                VideoMsgView(bloc: bloc,msgItem: msgItem):
-                 Container(
+                return    Container(
                   width: IMAGE_MESSAGE_WIDTH,
                   height: IMAGE_MESSAGE_HEIGHT,
                   margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
@@ -470,6 +474,9 @@ class ImageMsgOrVideoMsgView extends StatelessWidget {
                   ),
                   child:
                   (sendFileList[index].fileUrl != "")?
+                  (sendFileList[index].fileType.toString().contains("video"))?
+                  VideoMsgView(bloc: bloc,msgItem: msgItem,videoUrl: sendFileList[index].fileUrl??"",):
+
                   ClipRRect(
                     borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
                     child: Image.network(
@@ -625,10 +632,12 @@ class ImageMsgOrVideoMsgView extends StatelessWidget {
 
 class VideoMsgView extends StatelessWidget {
   final ChatDetailPageBloc bloc;
+  final String videoUrl;
   const VideoMsgView({
     super.key,
     required this.msgItem,
-    required this.bloc
+    required this.bloc,
+    required this.videoUrl
   });
   final ChatMessageVO msgItem;
 
@@ -643,36 +652,41 @@ class VideoMsgView extends StatelessWidget {
     DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
     String dateString = dateFormat.format(dateTime);
     return
-      GestureDetector(
-        onTap: (){
-          bloc.videoController!.value.isPlaying
-              ? bloc.pause()
-              : bloc.play();
-        },
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),
-          child: AspectRatio(
-            aspectRatio: 2/3,
-            child: bloc.videoController != null ?
-            Stack(
-              children: [
-                VideoPlayer(
-                  bloc.videoController!,
-                ),
-                Center(
-                  child: Icon(
-                    bloc.videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow,
-                    color: Colors.white,
-                    size: 50,
-                  ),
-                )
-              ],
-            ) : const Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
-        ),
-      );
+
+      VideoViewCustomWidget(videoUrl:videoUrl);
+      // GestureDetector(
+      //   onTap: (){
+      //     bloc.videoController!.value.isPlaying
+      //         ? bloc.pause()
+      //         : bloc.play();
+      //   },
+      //   child: ClipRRect(
+      //     borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),
+      //     child: AspectRatio(
+      //       aspectRatio: 2/3,
+      //       child: bloc.videoController != null ?
+      //       Stack(
+      //         children: [
+      //           VideoPlayer(
+      //             bloc.videoController!,
+      //           ),
+      //           Center(
+      //             child: Icon(
+      //               bloc.videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+      //               color: Colors.white,
+      //               size: 50,
+      //             ),
+      //           )
+      //         ],
+      //       ) : const Center(
+      //         child: CircularProgressIndicator(),
+      //       ),
+      //     ),
+      //   ),
+      // );
+
+
+
       // Container(
       //   width: 150,
       //   height: 100,

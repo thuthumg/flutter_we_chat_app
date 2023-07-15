@@ -58,7 +58,9 @@ class CreateGroupContactsPage extends StatelessWidget{
 
                 ///Search contact section view
 
-                SearchBoxWidget(onSearch: (searchText){
+                SearchBoxWidget(
+                  hintText: "Search Contacts.....",
+                  onSearch: (searchText){
 
                   bloc.searchContacts(searchText,"createGroup");
 

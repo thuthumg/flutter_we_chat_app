@@ -32,6 +32,9 @@ class ChatDetailPageBloc extends ChangeNotifier {
   final WeChatAppModel _mWeChatAppModel = WeChatAppModelImpl();
   final AuthenticationModel _authenticationModel = AuthenticationModelImpl();
 
+  ///Image
+  File? takePhotoImageFile;
+
   ChatDetailPageBloc(String receiverId,bool isGroup) {
     _showLoading();
     _mWeChatAppModel
@@ -52,7 +55,12 @@ class ChatDetailPageBloc extends ChangeNotifier {
       _notifySafely();
     });
   }
-
+  void onTakePhoto(File imageFile){
+    takePhotoImageFile = imageFile;
+    selectedImages = [];
+    selectedImages.add(takePhotoImageFile??File(""));
+    _notifySafely();
+  }
   void onTypeMessageTextChanged(String typeMessageText) {
     this.typeMessageText = typeMessageText;
   }
@@ -264,7 +272,7 @@ class ChatDetailPageBloc extends ChangeNotifier {
   Future<void> initVideoWithNetworkLink(String path) async {
 
     print("initvideowithnetwork ${path}");
-    _videoController?.dispose();
+   // _videoController?.dispose();
     _videoController = VideoPlayerController.network(path);
     await _videoController!.initialize();
     notifyListeners();

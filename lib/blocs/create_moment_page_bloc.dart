@@ -112,6 +112,7 @@ class CreateMomentPageBloc extends ChangeNotifier {
     _notifySafely();
   }
 
+
   void onImageChosen(List<dynamic> imageFiles){
     _showLoading();
    // chosenImageFile = imageFile;

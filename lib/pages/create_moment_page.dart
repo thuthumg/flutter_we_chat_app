@@ -28,6 +28,12 @@ class CreateMomentPage extends StatelessWidget {
       return FileType.any;
     }
   }
+
+
+
+
+
+
   Future<void> _pickMultipleImages(CreateMomentPageBloc bloc) async {
     FilePickerResult? result =
         await FilePicker.platform.pickFiles(allowMultiple: true);

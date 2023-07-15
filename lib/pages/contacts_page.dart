@@ -34,6 +34,7 @@ class ContactsPage extends StatelessWidget {
               children: [
                 ///Search contact section view
                 SearchBoxWidget(
+                  hintText: "Search Contacts.....",
                   onSearch: (searchText) {
                     bloc.searchContacts(searchText,"contactsList");
                   },

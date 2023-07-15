@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
@@ -10,6 +13,7 @@ import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/pages/error_alert_box_view.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
+import 'package:we_chat_app/viewitems/bottom_sheet_view.dart';
 import 'package:we_chat_app/viewitems/sent_msg_and_receive_msg_view_item.dart';
 import 'package:we_chat_app/widgets/loading_view.dart';
 
@@ -66,7 +70,6 @@ class ChatDetailPage extends StatelessWidget {
                       SendMsgSectionView(
                           chatDetailPageBloc: bloc,
                           onTapSendMessage: () {
-
                             bloc.onTapSendMessage(
                                 bloc.userVO?.id,
                                 chatUserId,
@@ -99,7 +102,13 @@ class ChatDetailPage extends StatelessWidget {
                       /// Media(photo,video) data, git data, location data and voice data Action Section View
                       ActionButtonSectionViewForSendMediaMsg(
                         onTapBottomNavItem: (bottomNavIndex){
+
+                          if(bottomNavIndex == 0)
                           _pickMultipleImages(bloc);
+                          else if(bottomNavIndex == 1)
+                            _takePhotoFromCamera(bloc);
+                          else if(bottomNavIndex == 2)
+                            _gifImages(context,bloc);
                         },
                       ),
                     ],
@@ -130,6 +139,32 @@ class ChatDetailPage extends StatelessWidget {
     return ErrorAlertBoxView(messageStr: "Send Message should not be empty" );
   }
 
+  Future<void> _gifImages(BuildContext context,ChatDetailPageBloc bloc) async {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return BottomSheetView(
+        );
+      },
+      isScrollControlled: true
+    );
+
+  }
+
+  Future<void> _takePhotoFromCamera(ChatDetailPageBloc bloc) async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(
+        source: ImageSource.camera);
+    if (image != null) {
+
+      // List<String?> filePaths = result.paths;
+      // List fileTypes = result.paths
+      //     .map((path) => getFileTypeFromPath(path))
+      //     .toList();
+
+      bloc.onTakePhoto(File(image.path));
+    }
+  }
 
 }
 
@@ -307,6 +342,9 @@ class SelectImageSectionView extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         itemCount: chatDetailPageBloc.selectedImages.length,
         itemBuilder: (BuildContext context, int index) {
+
+          print("chatdetail ${chatDetailPageBloc.selectedImages[index].toString()}");
+
           return Container(
               width: 100,
               height: 60,

@@ -4,8 +4,9 @@ import 'package:we_chat_app/resources/dimens.dart';
 class SearchBoxWidget extends StatefulWidget{
 
   final Function(String) onSearch;
+  final String hintText;
 
-  const SearchBoxWidget({super.key,required this.onSearch});
+  const SearchBoxWidget({super.key,required this.onSearch,required this.hintText});
 
   @override
   State<SearchBoxWidget> createState() => _SearchBoxWidgetState();
@@ -33,7 +34,7 @@ class _SearchBoxWidgetState extends State<SearchBoxWidget> {
         decoration: InputDecoration(
           focusedBorder: InputBorder.none,
           enabledBorder: InputBorder.none,
-          hintText: 'Search...',
+          hintText: widget.hintText??'Search...',
           hintStyle: const TextStyle(color: Color.fromRGBO(17, 58, 93, 0.5)),
           prefixIcon: const Icon(Icons.search,color: Color.fromRGBO(17, 58, 93, 1),),
           filled: true,

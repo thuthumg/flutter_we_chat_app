@@ -185,6 +185,7 @@ class MomentsPageBloc extends ChangeNotifier{
 
 
   }
+
   Stream<List<MomentVO>> setFavouritesAndBookMarkedToShowHome(
       List<MomentVO> momentsList,
       List<MomentVO> favouritesList,
@@ -200,21 +201,7 @@ class MomentsPageBloc extends ChangeNotifier{
       List<MomentVO> userFavouritesList = combinedList[1];
       List<MomentVO> bookMarksList = combinedList[2];
 
-      debugPrint(
-          "check all Moments  -----"
-              " ${allMomentsList.toList().toString()}"
-      );
-
-      debugPrint(
-          "check userFavouritesList   -----"
-              " ${userFavouritesList.toList().toString()}"
-      );
-
       return allMomentsList.map((momentObj) {
-        debugPrint(
-            "check  Moment ${momentObj.name} ${momentObj.isUserFavouriteFlag} ${userFavouritesList.contains(momentObj)}"
-        );
-
         if(userFavouritesList.contains(momentObj))
         {
           momentObj.isUserFavouriteFlag = true;
@@ -230,12 +217,6 @@ class MomentsPageBloc extends ChangeNotifier{
           }else{
           momentObj.isUserBookMarkFlag = false;
         }
-
-
-
-        debugPrint(
-            "check  Moment 2 ${momentObj.name} ${momentObj.isUserFavouriteFlag} \n "
-        );
         _notifySafely();
         return momentObj;
       }).toList();
