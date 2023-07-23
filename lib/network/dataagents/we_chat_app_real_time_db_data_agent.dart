@@ -8,7 +8,8 @@ abstract class WeChatAppRealTimeDBDataAgent {
 
   Future<void> sendMessage(String senderId, String receiverId, String sendMsg,
       String senderName, List<File> sendMsgFileUrl,
-      String profileUrl,String timestamp, List<String>  selectedGifImages);
+      String profileUrl,String timestamp,
+      List<String>  selectedGifImages,String voiceRecordedFile);
 
   Stream<List<ChatMessageVO>> getChatMessageList(String loginUserId,String receiverId,bool isGroup);
   Stream<List<ChatHistoryVO>> getChatHistoryList(String loginUserId);
@@ -26,7 +27,8 @@ abstract class WeChatAppRealTimeDBDataAgent {
       List<File> sendMsgFileUrl,
       String profileUrl,
       String timestamp,
-      List<String>  selectedGifImages);
+      List<String>  selectedGifImages,
+      String voiceRecordedFile);
 
 
 }

@@ -577,5 +577,27 @@ class CloudFirestoreDataAgentImpl extends WeChatAppDataAgent{
 
   }
 
+  @override
+  Future<List<MediaTypeVO>> uploadVoiceRecordFileToFirebaseForChatMsg(String voiceRecordFile) async {
+    List<MediaTypeVO> strVoiceRecordFile = [];
+    File recordedFile = File(voiceRecordFile);
+
+    var taskSnapshot = await firebaseStorage
+        .ref()
+        .child("audio/${DateTime.now().millisecondsSinceEpoch}")
+        .putFile(recordedFile);
+
+    var downloadURL = await taskSnapshot.ref.getDownloadURL();
+    var metaData = await taskSnapshot.ref.getMetadata();
+    var contentType = metaData.contentType;
+    strVoiceRecordFile.add(MediaTypeVO(
+        id: "1",
+        fileType: "aac",
+        fileUrl: downloadURL
+    ));
+
+    return strVoiceRecordFile;
+  }
+
 
 }

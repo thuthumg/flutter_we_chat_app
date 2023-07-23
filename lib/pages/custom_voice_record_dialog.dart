@@ -15,8 +15,11 @@ import 'package:we_chat_app/resources/dimens.dart';
 class CustomVoiceRecordDialog extends StatefulWidget {
 
   ChatDetailPageBloc bloc;
+  Function onTapSendMessage;
 
-  CustomVoiceRecordDialog({required this.bloc});
+  CustomVoiceRecordDialog({
+    required this.bloc,
+    required this.onTapSendMessage});
 
   @override
   State<CustomVoiceRecordDialog> createState() => _CustomVoiceRecordDialogState();
@@ -51,7 +54,9 @@ class _CustomVoiceRecordDialogState extends State<CustomVoiceRecordDialog> {
   }
   Future<void> _stopPlayingAudio() async {
     await _audioPlayer.stop();
+
     setState(() {
+      widget.bloc.saveVoiceRecordedFile(_recordPath);
       _isPlaying = false;
     });
   }
@@ -106,6 +111,7 @@ class _CustomVoiceRecordDialogState extends State<CustomVoiceRecordDialog> {
     try {
       await Record().stop();
       setState(() {
+        widget.bloc.saveVoiceRecordedFile(_recordPath);
         _isPlaying = false;
         _isRecording = false;
       });
@@ -116,29 +122,6 @@ class _CustomVoiceRecordDialogState extends State<CustomVoiceRecordDialog> {
   }
 
 
-
-  // Function to show the recorded files UI
-  Widget _showRecordedFiles() {
-    if (_recordedFiles.isEmpty) {
-      return Text('No recorded files available.');
-    } else {
-      return ListView.builder(
-        shrinkWrap: true,
-        itemCount: _recordedFiles.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text('Recorded File ${index + 1}'),
-            trailing: IconButton(
-              onPressed: () {
-                _playRecordedFileAtIndex(index);
-              },
-              icon: Icon(Icons.play_arrow),
-            ),
-          );
-        },
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -183,73 +166,88 @@ class _CustomVoiceRecordDialogState extends State<CustomVoiceRecordDialog> {
               color: Colors.red,
             )
                 : SizedBox(),
-            // _recordPath.isNotEmpty
-            //     ? IconButton(
-            //   onPressed: _playRecordedAudio,
-            //   icon: Icon(Icons.play_arrow),
-            //   iconSize: 48,
-            //   color: Colors.green,
-            // )
-            //     : SizedBox(),
-            // _recordPath.isNotEmpty
-            //     ? IconButton(
-            //   onPressed: _stopPlayingAudio,
-            //   icon: Icon(Icons.stop),
-            //   iconSize: 48,
-            //   color: Colors.red,
-            // )
-            //     : SizedBox(),
-
-            _recordPath.isNotEmpty
+            SizedBox(height: MARGIN_MEDIUM_3,),
+            ( (!_isRecording) && _recordPath.isNotEmpty)
                 ?
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: MARGIN_LARGE),
                   width: MediaQuery.of(context).size.width,
-                  height: 30,
-                  child: Row(
 
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                 // height: 30,
+                  child: Column(
+
                     children: [
-                      Row(
+                      Container(
+                        height:60,
+                    decoration: BoxDecoration(
+                      color: CREATE_NEW_ACCOUNT_TXT_COLOR,
+                      borderRadius: BorderRadius.circular(
+                          30),
+                    ),
+                        child: Container(
+                          margin: EdgeInsets.all(MARGIN_MEDIUM_2),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                           // crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Row(
+                                children: [
+                                const Text('Recorded File ......'),
+                                LoadingIndicator(
+                                  indicatorType: Indicator.lineScalePulseOut,
+                                  colors: [Colors.white],
+                                  strokeWidth: 2,
+                                  backgroundColor: Colors.transparent,
+                                  pathBackgroundColor: Colors.black,
+                                  pause: _isPlaying? false : true,
 
-                        children: [
-                        const Text('Recorded File ......'),
-                        LoadingIndicator(
-                          indicatorType: Indicator.lineScalePulseOut,
-                          colors: [SECONDARY_COLOR],
-                          strokeWidth: 2,
-                          backgroundColor: Colors.transparent,
-                          pathBackgroundColor: Colors.black,
-                          pause: _isPlaying? false : true,
+                                )
+                              ],)
+                            ,
 
-                        )
-                      ],)
-                    ,
-                    Row(
+                              _isPlaying?
+                              GestureDetector(
+                                onTap: (){
+                                  // _isPlaying = false;
+                                  _stopPlayingAudio();
+                                },
+                                child: const Icon(Icons.stop,size: 35,
+                                  color: Colors.red,),
+                              ):
+                              GestureDetector(
+                                onTap: (){
+                                  _playRecordedAudio();
+                                },
+                                child: const Icon(Icons.play_arrow ,size: 35,
+                                  color: Colors.green,),
+                              ),
 
-                      children: [
-                      IconButton(
-                        onPressed: (){
-                          _playRecordedAudio();
-                        },
-                        icon: const Icon(Icons.play_arrow ,size: 35,
-                          color: Colors.green,),
+                              GestureDetector(
+                                onTap: (){
+                                  _deleteFile();
+                                },
+                                child: const Icon(Icons.cancel ,
+                                  size: 25,
+                                  color: Colors.white,),
+                              )
+
+                          ],
+                          ),
+                        ),
                       ),
-                      IconButton(
-                        onPressed: (){
-                         // _isPlaying = false;
-                          _stopPlayingAudio();
-                        },
-                        icon: const Icon(Icons.stop,size: 35,
-                          color: Colors.red,),
-                      )
-                    ],)
-
-                  ],
+                      SizedBox(height: MARGIN_MEDIUM_3,),
+                      Visibility(
+                          visible: _isRecording? false:true,
+                          child:   ElevatedButton(
+                            onPressed: (){widget.onTapSendMessage();},
+                            child: Text('Send File'),
+                          ))
+                    ],
                   ),
                 )
                 : const SizedBox(),
+
+
 
           ],
         ),
@@ -263,7 +261,13 @@ class _CustomVoiceRecordDialogState extends State<CustomVoiceRecordDialog> {
     String filePath = _recordedFiles[index];
     _audioPlayer.play(UrlSource(filePath));
   }
-
+  void _deleteFile() {
+    _recordPath = "";
+    setState(() {
+      _isPlaying = false;
+      _isRecording = false;
+    });
+  }
 
 
 }

@@ -26,6 +26,8 @@ abstract class WeChatAppDataAgent{
   Future<void> addNewMoment(MomentVO newMoment);
   Future<String> multiUploadFileToFirebase(List<File> image);
   Future<List<MediaTypeVO>> multiUploadFileToFirebaseForChatMsg(List<File> image);
+  Future<List<MediaTypeVO>> uploadVoiceRecordFileToFirebaseForChatMsg(String voiceRecordFile);
+
   Future<void> saveBookmark(UserVO userVO,MomentVO newMoment);
   Future<void> saveFavourite(UserVO userVO,MomentVO newMoment);
 

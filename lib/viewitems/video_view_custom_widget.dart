@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:we_chat_app/data/vos/media_type_vo.dart';
+import 'package:we_chat_app/pages/photo_view_page.dart';
 import 'package:we_chat_app/resources/dimens.dart';
 
 class VideoViewCustomWidget extends StatefulWidget{
 
   final String? videoUrl;
+  final MediaTypeVO mediaTypeVO;
+  final bool isExitFullScreen;
 
-  VideoViewCustomWidget({required this.videoUrl});
+  VideoViewCustomWidget({required this.videoUrl,required this.mediaTypeVO,required this.isExitFullScreen});
 
   @override
   State<VideoViewCustomWidget> createState() => _VideoViewCustomWidgetState();
@@ -45,7 +49,7 @@ class _VideoViewCustomWidgetState extends State<VideoViewCustomWidget> {
 
         },
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),
+          borderRadius: BorderRadius.circular(widget.isExitFullScreen? 0:MARGIN_CARD_MEDIUM_2),
           child: AspectRatio(
             aspectRatio: 2/3,
            // aspectRatio: _controller.value.aspectRatio,
@@ -61,6 +65,37 @@ class _VideoViewCustomWidgetState extends State<VideoViewCustomWidget> {
                     color: Colors.white,
                     size: 50,
                   ),
+                ),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child:
+                  (!widget.isExitFullScreen) ?
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => MediaDetailViewPage(
+                            imageUrl : widget.videoUrl??"",
+                            mediaTypeVO : widget.mediaTypeVO,
+                            isExitFullScreen : widget.isExitFullScreen
+                        )
+                      )
+                      );
+
+                    },
+                    child:  Image.asset(
+                    "assets/fullscreen_icon.png",
+                      scale: 1,
+                    )
+                  ): GestureDetector(
+                      onTap: (){
+                        Navigator.of(context).pop();
+
+                      },
+                      child:  Image.asset(
+                        "assets/exit_full_screen_icon.png",
+                        scale: 1,
+                      ),
+                ),
                 )
               ],
             ) : const Center(

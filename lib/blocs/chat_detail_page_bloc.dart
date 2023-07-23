@@ -28,6 +28,8 @@ class ChatDetailPageBloc extends ChangeNotifier {
 
   bool fileTypeStr = false;
 
+  bool isPlayingRecordedFile = false;
+
   VideoPlayerController? _videoController;
   VideoPlayerController? get videoController => _videoController;
   ///Model
@@ -66,7 +68,9 @@ class ChatDetailPageBloc extends ChangeNotifier {
     selectedImages.add(takePhotoImageFile??File(""));
     _notifySafely();
   }
-
+  setStateForPlayAudioFile(bool audioPlayStatus){
+    isPlayingRecordedFile = audioPlayStatus;
+  }
   void onTapGifImage(String gifUrl){
     selectedImages = [];
   selectedGifUrl = gifUrl;
@@ -87,10 +91,12 @@ class ChatDetailPageBloc extends ChangeNotifier {
     sendMsgFileUrl,
     profileUrl,
       isChatGroup,
-      selectedGifImagesParam
+      selectedGifImagesParam,
+      voiceRecordedFile
   ) {
     _showLoading();
-    if (typeMessageText.isEmpty && selectedImages.isEmpty && selectedGifImages.isEmpty) {
+    if (typeMessageText.isEmpty && selectedImages.isEmpty && selectedGifImages.isEmpty && this.voiceRecordedFile.isEmpty) {
+      //&& voiceRecordedFile.isEmpty
       debugPrint("type text empty case");
       _hideLoading();
       isSendMessageError = true;
@@ -105,7 +111,7 @@ class ChatDetailPageBloc extends ChangeNotifier {
       if(isChatGroup)
         {
           return _sendGroupChatMessage(senderId, receiverId, sendMsg, senderName,
-              sendMsgFileUrl, profileUrl, selectedGifImagesParam)
+              sendMsgFileUrl, profileUrl, selectedGifImagesParam, voiceRecordedFile)
               .then((value) {
             isLoading = false;
             _hideLoading();
@@ -114,7 +120,7 @@ class ChatDetailPageBloc extends ChangeNotifier {
         }
       else{
         return _sendChatMessage(senderId, receiverId, sendMsg, senderName,
-            sendMsgFileUrl, profileUrl, selectedGifImagesParam)
+            sendMsgFileUrl, profileUrl, selectedGifImagesParam,voiceRecordedFile)
             .then((value) {
           isLoading = false;
           _hideLoading();
@@ -166,7 +172,7 @@ class ChatDetailPageBloc extends ChangeNotifier {
   }
 
   Future<void> _sendChatMessage(senderId, receiverId, sendMsg, senderName,
-      sendMsgFileUrl, profileUrl, selectedGifImages) async {
+      sendMsgFileUrl, profileUrl, selectedGifImages,voiceRecordedFile) async {
     _mWeChatAppModel.sendMessage(
         senderId,
         receiverId,
@@ -175,7 +181,8 @@ class ChatDetailPageBloc extends ChangeNotifier {
         sendMsgFileUrl,
         profileUrl,
         DateTime.now().millisecondsSinceEpoch.toString(),
-        selectedGifImages
+        selectedGifImages,
+        voiceRecordedFile
     );
 
     _notifySafely();
@@ -225,7 +232,7 @@ class ChatDetailPageBloc extends ChangeNotifier {
 
 
   Future<void> _sendGroupChatMessage(senderId, receiverId, sendMsg, senderName,
-      sendMsgFileUrl, profileUrl, selectedGifImages) async {
+      sendMsgFileUrl, profileUrl, selectedGifImages,voiceRecordedFile) async {
 
     _mWeChatAppModel.sendGroupMessage(
         senderId,
@@ -235,7 +242,8 @@ class ChatDetailPageBloc extends ChangeNotifier {
         sendMsgFileUrl,
         profileUrl,
         DateTime.now().millisecondsSinceEpoch.toString(),
-        selectedGifImages);
+        selectedGifImages,
+        voiceRecordedFile);
 
     _notifySafely();
   }

@@ -8,7 +8,10 @@ import 'package:we_chat_app/viewitems/video_view_custom_widget.dart';
 class MediaDetailViewPage extends StatelessWidget {
   final String imageUrl;
   final MediaTypeVO mediaTypeVO;
-  MediaDetailViewPage({required this.imageUrl,required this.mediaTypeVO});
+  final bool isExitFullScreen;
+
+
+  MediaDetailViewPage({required this.imageUrl,required this.mediaTypeVO,required this.isExitFullScreen});
 
   @override
   Widget build(BuildContext context) {
@@ -16,14 +19,18 @@ class MediaDetailViewPage extends StatelessWidget {
     return Scaffold(
 
       body: Container(
+
         constraints: BoxConstraints.expand(
           // Set the constraints to cover the available space
           width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
+          height:MediaQuery.of(context).size.height,
         ),
         child:
         (mediaTypeVO.fileType.toString().contains("video"))?
-        VideoViewCustomWidget(videoUrl:mediaTypeVO.fileUrl)
+        Padding(
+          padding: const EdgeInsets.only(top: 150,bottom: 150),
+          child: VideoViewCustomWidget(  mediaTypeVO:mediaTypeVO , videoUrl:mediaTypeVO.fileUrl,isExitFullScreen: true,),
+        )
             : (mediaTypeVO.fileType.toString().contains("gif"))?
         ClipRRect(
           borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),

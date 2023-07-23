@@ -93,7 +93,8 @@ class ChatDetailPage extends StatelessWidget {
                                 bloc.selectedImages,
                                 bloc.userVO?.profileUrl,
                                 isGroupChat,
-                              bloc.selectedGifImages).then((value) {
+                              bloc.selectedGifImages,
+                            bloc.voiceRecordedFile).then((value) {
                                   bloc.typeMessageText = "";
                                   bloc.selectedImages = [];
                                   bloc.selectedGifImages = [];
@@ -127,7 +128,7 @@ class ChatDetailPage extends StatelessWidget {
                           else if(bottomNavIndex == 2)
                             _gifImages(context,bloc);
                           else if(bottomNavIndex == 4)
-                            _voiceRecord(context,bloc);
+                            _voiceRecord(context,bloc,chatUserId,isGroupChat);
                         },
                       ),
                     ],
@@ -195,7 +196,8 @@ class ChatDetailPage extends StatelessWidget {
 
 }
 
-Future<void> _voiceRecord(BuildContext context, ChatDetailPageBloc bloc) async {
+Future<void> _voiceRecord(BuildContext context, ChatDetailPageBloc bloc,
+    String chatUserId, bool isGroupChat) async {
 
 /*  Navigator.of(context).push(
     MaterialPageRoute(builder: (context) => VoiceRecorderApp()),
@@ -205,7 +207,37 @@ Future<void> _voiceRecord(BuildContext context, ChatDetailPageBloc bloc) async {
      context: context,
      builder: (BuildContext context) {
        return
-         CustomVoiceRecordDialog(bloc:bloc);
+         CustomVoiceRecordDialog(bloc:bloc,onTapSendMessage: (){
+          // debugPrint("check audio file ${ bloc.voiceRecordedFile}");
+           bloc.onTapSendMessage(
+               bloc.userVO?.id,
+               chatUserId,
+               bloc.typeMessageText,
+               bloc.userVO?.userName,
+               bloc.selectedImages,
+               bloc.userVO?.profileUrl,
+               isGroupChat,
+               bloc.selectedGifImages,
+           bloc.voiceRecordedFile).then((value) {
+             bloc.typeMessageText = "";
+             bloc.selectedImages = [];
+             bloc.selectedGifImages = [];
+             Navigator.of(context).pop();
+
+           })
+               .catchError((error){
+
+             showDialog(
+                 context: context,
+                 builder: (BuildContext context) =>
+                  ErrorAlertBoxView(messageStr: "Send Message should not be empty" )
+             );
+               });
+
+
+
+
+           },);
 
      },
      isScrollControlled: true
@@ -654,7 +686,8 @@ class ChatMsgSectionView extends StatelessWidget {
                   debugPrint("chat detail page");
                     navigateToScreen(context,MediaDetailViewPage(
                         imageUrl : url,
-                            mediaTypeVO : mediaTypeVO
+                            mediaTypeVO : mediaTypeVO,
+                      isExitFullScreen: false,
                     ),false);
 
                   },

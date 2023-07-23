@@ -60,7 +60,9 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
       List<File> sendMsgFileUrl,
       String profileUrl,
       String timestamp,
-      List<String>  selectedGifImages) {
+      List<String>  selectedGifImages,
+      String voiceRecordedFile) {
+
     debugPrint("check send Message ${sendMsgFileUrl.length}");
     if (sendMsgFileUrl.isNotEmpty) {//sendMsgFileUrl != null
       return mDataAgent
@@ -94,6 +96,19 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
               profileUrl,
               timestamp);
         }
+      else if(voiceRecordedFile.isNotEmpty){
+
+        return mDataAgent
+            .uploadVoiceRecordFileToFirebaseForChatMsg(voiceRecordedFile)
+            .then(
+                (mediaTypeObjList) => sendChatMessageVO(senderId,
+                receiverId,
+                sendMsg,
+                senderName,
+                mediaTypeObjList,
+                profileUrl,
+                timestamp));
+      }
       else
         {
           return sendChatMessageVO(senderId,
@@ -689,7 +704,8 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
       List<File> sendMsgFileUrl,
       String profileUrl,
       String timestamp,
-      List<String>  selectedGifImages)
+      List<String>  selectedGifImages,
+      String voiceRecordedFile)
     {
 
       if (sendMsgFileUrl.isNotEmpty) {
@@ -704,7 +720,8 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
                 mediaTypeVOList,
                 profileUrl,
                 timestamp));
-      } else {
+      }
+      else {
 
         if(selectedGifImages.isNotEmpty)
 
@@ -726,6 +743,20 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
                 profileUrl,
                 timestamp);
           }
+        else if(voiceRecordedFile.isNotEmpty){
+
+          return mDataAgent
+              .uploadVoiceRecordFileToFirebaseForChatMsg(voiceRecordedFile)
+              .then(
+                  (mediaTypeVOList) => sendGroupChatMessageVO(
+                  senderId,
+                  receiverId,
+                  sendMsg,
+                  senderName,
+                  mediaTypeVOList,
+                  profileUrl,
+                  timestamp));
+        }
         else
           {
             return sendGroupChatMessageVO(
