@@ -1,15 +1,16 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:video_player/video_player.dart';
+import 'package:photo_view/photo_view.dart';
 
 import 'package:we_chat_app/blocs/chat_detail_page_bloc.dart';
 import 'package:we_chat_app/components/profile_img_with_active_status_view.dart';
 import 'package:we_chat_app/data/vos/chat_message_vo.dart';
 import 'package:we_chat_app/data/vos/media_type_vo.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
+import 'package:we_chat_app/pages/photo_view_page.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
-import 'package:we_chat_app/utils/constants.dart';
 import 'package:we_chat_app/viewitems/video_view_custom_widget.dart';
 
 
@@ -17,18 +18,32 @@ class SentMsgAndReceiveMsgViewItem extends StatelessWidget {
   final ChatDetailPageBloc bloc;
   final ChatMessageVO msgItem;
   final UserVO? loginUserVO;
+  Function(String,MediaTypeVO) onTapSelectedPhoto;
 
-  const SentMsgAndReceiveMsgViewItem({super.key,
+  SentMsgAndReceiveMsgViewItem({
+    super.key,
     required this.msgItem,
   required this.loginUserVO,
-  required this.bloc});
+  required this.bloc,
+  required this.onTapSelectedPhoto
+  });
 
   @override
   Widget build(BuildContext context) {
 
     return (loginUserVO?.id == msgItem.userId)
-        ? SentMsgSectionView(bloc:bloc,msgItem: msgItem)
-        : ReceiveMsgSectionView(bloc:bloc,msgItem: msgItem);
+        ? SentMsgSectionView(
+        bloc:bloc,
+        msgItem: msgItem,onTapSelectedPhoto: (url,mediaTypeVO){
+          debugPrint("sendmsgandrecivemsg data ${url}");
+         return onTapSelectedPhoto(url,mediaTypeVO);
+
+    })
+        : ReceiveMsgSectionView(bloc:bloc,msgItem: msgItem,onTapSelectedPhoto: (url,mediaTypeVO){
+      debugPrint("sendmsgandrecivemsg data ${url}");
+      return onTapSelectedPhoto(url,mediaTypeVO);
+
+    });
 
   }
 }
@@ -36,11 +51,13 @@ class SentMsgAndReceiveMsgViewItem extends StatelessWidget {
 class ReceiveMsgSectionView extends StatelessWidget {
 
   final ChatDetailPageBloc bloc;
+  Function(String,MediaTypeVO) onTapSelectedPhoto;
 
-  const ReceiveMsgSectionView({
+  ReceiveMsgSectionView({
     super.key,
     required this.msgItem,
-    required this.bloc
+    required this.bloc,
+    required this.onTapSelectedPhoto
   });
 
   final ChatMessageVO msgItem;
@@ -48,11 +65,9 @@ class ReceiveMsgSectionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    debugPrint("send msg profile ${msgItem.profileUrl}");
-
     return Container(
 
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         alignment: Alignment.centerLeft,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,10 +88,12 @@ class ReceiveMsgSectionView extends StatelessWidget {
                     visible: (msgItem.message == "")? false: true,
                     child: ReceiveTextMsgView(msgItem: msgItem)),
 
-                SizedBox(height: MARGIN_MEDIUM,),
+                const SizedBox(height: MARGIN_MEDIUM,),
                 Visibility(
                     visible: (msgItem.mediaFile?.length == 0)? false: true,
-                    child: ReceiveImgOrVideoMsgView(bloc:bloc,msgItem: msgItem)),
+                    child: ReceiveImgOrVideoMsgView(bloc:bloc,msgItem: msgItem,onTapSelectedPhoto:(url,mediaTypeVO){
+                     return onTapSelectedPhoto(url,mediaTypeVO);
+                    })),
               ],
             ),
           ],
@@ -87,99 +104,58 @@ class ReceiveMsgSectionView extends StatelessWidget {
 
 class ReceiveImgOrVideoMsgView extends StatelessWidget {
   final ChatDetailPageBloc bloc;
+  Function(String,MediaTypeVO) onTapSelectedPhoto;
 
-  const ReceiveImgOrVideoMsgView({
+  ReceiveImgOrVideoMsgView({
     super.key,
     required this.msgItem,
-    required this.bloc
+    required this.bloc,
+    required this.onTapSelectedPhoto
   });
   final ChatMessageVO msgItem;
 
   @override
   Widget build(BuildContext context) {
 
-   /// List<String> sendFileList =  msgItem.file?.split(",")??[];
    List<MediaTypeVO> sendFileList =  msgItem.mediaFile as List<MediaTypeVO>;
-  //  List<MediaTypeVO> sendFileList =  msgItem.mediaFile?.values.toList() ?? [];
     DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
     DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
     String dateString = dateFormat.format(dateTime);
 
-    if(sendFileList.length == 1 &&
-        sendFileList[0].fileType.toString().contains("video"))
-      {
-        //bloc.initVideoWithNetworkLink(sendFileList[0].fileUrl.toString());
-      }
-
     return
-      // Column(
-      //   crossAxisAlignment: CrossAxisAlignment.end,
-      //   children: [
-      //     Container(
-      //       width: 160,
-      //       height: 100,
-      //       margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
-      //       decoration: BoxDecoration(
-      //         borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-      //       ),
-      //       child:
-      //       (sendFileList[0].isNotEmpty)?
-      //       ClipRRect(
-      //         borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-      //         child: Image.network(
-      //           sendFileList[0]??"",
-      //           fit: BoxFit.cover,
-      //         ),
-      //       ):
-      //       ClipRRect(
-      //         borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-      //         child: Image.asset(
-      //           "assets/chat/empty_image.png",
-      //           fit: BoxFit.cover,
-      //         ),
-      //       ),
-      //     ),
-      //     const SizedBox(height: MARGIN_MEDIUM,),
-      //     Text(
-      //       dateString,
-      //       style: const TextStyle(
-      //         fontSize: TEXT_XSMALL,
-      //         color:TEXT_FIELD_HINT_TXT_COLOR,
-      //         fontWeight: FontWeight.w400,
-      //       ),
-      //     ),
-      //   ],
-      // )
       (sendFileList.length == 1)?
-     // (sendFileList[0].fileType.toString().contains("video"))?
-     // VideoMsgView(bloc: bloc,msgItem: msgItem,videoUrl:sendFileList[0].fileUrl??""):
       Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Container(
-            width: 160,
-            height: 100,
-            margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-            ),
-            child:
-            (sendFileList[0].fileUrl != "")?
-            (sendFileList[0].fileType.toString().contains("video"))?
-            VideoMsgView(bloc: bloc,msgItem: msgItem,videoUrl:sendFileList[0].fileUrl??"")
-                :
-            ClipRRect(
-              borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-              child: Image.network(
-                sendFileList[0].fileUrl??"",
-                fit: BoxFit.cover,
+          GestureDetector(
+            onTap: (){
+              return onTapSelectedPhoto(sendFileList[0].fileUrl.toString() ,sendFileList[0]);
+            },
+            child: Container(
+              width: 160,
+              height: 100,
+              margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
               ),
-            ):
-            ClipRRect(
-              borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-              child: Image.asset(
-                "assets/chat/empty_image.png",
-                fit: BoxFit.cover,
+              child:
+              (sendFileList[0].fileUrl != "")?
+              (sendFileList[0].fileType.toString().contains("video"))?
+              VideoMsgView(bloc: bloc,msgItem: msgItem,videoUrl:sendFileList[0].fileUrl??"")
+                  :
+              ClipRRect(
+                borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                child: Image.network(
+                  sendFileList[0].fileUrl??"",
+                  fit: BoxFit.cover,
+                ),
+              ):
+              ClipRRect(
+                borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                child: Image.asset(
+                  "assets/chat/empty_image.png",
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),
@@ -212,39 +188,39 @@ class ReceiveImgOrVideoMsgView extends StatelessWidget {
               itemCount: sendFileList.length,
               itemBuilder: (context,index){
 
-                if(sendFileList[index].fileType.toString().contains("video") )
-                  //  bloc.initVideoWithNetworkLink(sendFileList[index].fileUrl.toString());
-
-                print("check file Type = "+ sendFileList[index].fileType.toString());
-
-                return
-                 Container(
-                  width: IMAGE_MESSAGE_WIDTH,
-                  height: IMAGE_MESSAGE_HEIGHT,
-                  margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-                  ),
-                  child:
-                  (sendFileList[index].fileUrl != "")?
-                  (sendFileList[index].fileType.toString().contains("video"))?
-                  VideoMsgView(bloc: bloc,msgItem: msgItem,videoUrl:sendFileList[index].fileUrl??"" ,):
-
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-                    child: Image.network(
-                      sendFileList[index].fileUrl??"",
-                      fit: BoxFit.cover,
+               return
+                 GestureDetector(
+                   onTap: (){
+                     return onTapSelectedPhoto(sendFileList[index].fileUrl.toString() ,sendFileList[index]);
+                   },
+                   child: Container(
+                    width: IMAGE_MESSAGE_WIDTH,
+                    height: IMAGE_MESSAGE_HEIGHT,
+                    margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
                     ),
-                  ):
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-                    child: Image.asset(
-                      "assets/chat/empty_image.png",
-                      fit: BoxFit.cover,
+                    child:
+                    (sendFileList[index].fileUrl != "")?
+                    (sendFileList[index].fileType.toString().contains("video"))?
+                    VideoMsgView(bloc: bloc,msgItem: msgItem,videoUrl:sendFileList[index].fileUrl??"" ,):
+
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                      child: Image.network(
+                        sendFileList[index].fileUrl??"",
+                        fit: BoxFit.cover,
+                      ),
+                    ):
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                      child: Image.asset(
+                        "assets/chat/empty_image.png",
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                  ),
-                )
+                ),
+                 )
 
                 ;
               },
@@ -314,10 +290,12 @@ class ReceiveTextMsgView extends StatelessWidget {
 
 class SentMsgSectionView extends StatelessWidget {
   final ChatDetailPageBloc bloc;
+  Function(String,MediaTypeVO) onTapSelectedPhoto;
    SentMsgSectionView({
     super.key,
     required this.msgItem,
-     required this.bloc
+     required this.bloc,
+     required this.onTapSelectedPhoto
   });
 
   final ChatMessageVO msgItem;
@@ -342,7 +320,20 @@ class SentMsgSectionView extends StatelessWidget {
             Visibility(
               visible: (msgItem.mediaFile?.length == 0)? false: true,
               child:
-              ImageMsgOrVideoMsgView(bloc:bloc,msgItem: msgItem))
+              ImageMsgOrVideoMsgView(bloc:bloc,msgItem: msgItem,onTapSelectedPhoto: (url,mediaTypeVO){
+
+                debugPrint("sentmsgandrecivemsg click listener url ${url}");
+
+                onTapSelectedPhoto(url,mediaTypeVO);
+
+             /*   Container(
+                 width: 100,
+                    height: 100,
+                    child: PhotoView(
+                      imageProvider: NetworkImage("${url}"),
+                    )
+                );*/
+              },))
     //         Visibility(
     //             visible: (msgItem.file == "")? false: true,
     //             child:
@@ -360,11 +351,13 @@ class SentMsgSectionView extends StatelessWidget {
 class ImageMsgOrVideoMsgView extends StatelessWidget {
 
   final ChatDetailPageBloc bloc;
+  Function(String,MediaTypeVO) onTapSelectedPhoto;
 
-  const ImageMsgOrVideoMsgView({
+  ImageMsgOrVideoMsgView({
     super.key,
     required this.msgItem,
-    required this.bloc
+    required this.bloc,
+    required this.onTapSelectedPhoto
   });
   final ChatMessageVO msgItem;
 
@@ -397,31 +390,44 @@ class ImageMsgOrVideoMsgView extends StatelessWidget {
       Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Container(
-            width: 160,
-            height: 100,
-            margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-            ),
-            child:
-            (sendFileList[0].fileUrl != "")?
-            (sendFileList[0].fileType.toString().contains("video"))?
-            VideoMsgView(bloc: bloc,msgItem: msgItem,videoUrl:sendFileList[0].fileUrl??"")
-           :
-            ClipRRect(
-              borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-              child: Image.network(
-                sendFileList[0].fileUrl??"",
-                fit: BoxFit.cover,
+          GestureDetector(
+            onTap: (){
+              debugPrint("sentmsgandrecivemsg click listener1");
+              onTapSelectedPhoto(sendFileList[0].fileUrl??"",sendFileList[0]);
+            },
+            child: Container(
+              width: 160,
+              height: 100,
+              margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
               ),
-            )
-              :
-            ClipRRect(
-              borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-              child: Image.asset(
-                "assets/chat/empty_image.png",
-                fit: BoxFit.cover,
+              child:
+              (sendFileList[0].fileUrl != "")?
+              (sendFileList[0].fileType.toString().contains("video"))?
+              VideoMsgView(bloc: bloc,msgItem: msgItem,videoUrl:sendFileList[0].fileUrl??"")
+             : (sendFileList[0].fileType.toString().contains("gif"))?
+                  ClipRRect(
+                borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                child: Image.network(
+                  sendFileList[0].fileUrl??"",
+                  fit: BoxFit.cover,
+                ),
+              ):
+              ClipRRect(
+                borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                child: Image.network(
+                  sendFileList[0].fileUrl??"",
+                  fit: BoxFit.cover,
+                ),
+              )
+                :
+              ClipRRect(
+                borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                child: Image.asset(
+                  "assets/chat/empty_image.png",
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),
@@ -457,38 +463,44 @@ class ImageMsgOrVideoMsgView extends StatelessWidget {
               ),
               itemCount: sendFileList.length,
               itemBuilder: (context,index){
-                print("check video type ${sendFileList[index].fileType.toString()}");
-                if(sendFileList[index].fileType.toString().contains("video") ) {
-                  print("video link");
-                 // bloc.initVideoWithNetworkLink(sendFileList[index].fileUrl.toString());
-                }
 
-                print("check file Type = "+ sendFileList[index].fileType.toString());
-
-                return    Container(
-                  width: IMAGE_MESSAGE_WIDTH,
-                  height: IMAGE_MESSAGE_HEIGHT,
-                  margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-                  ),
-                  child:
-                  (sendFileList[index].fileUrl != "")?
-                  (sendFileList[index].fileType.toString().contains("video"))?
-                  VideoMsgView(bloc: bloc,msgItem: msgItem,videoUrl: sendFileList[index].fileUrl??"",):
-
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-                    child: Image.network(
-                      sendFileList[index].fileUrl??"",
-                      fit: BoxFit.cover,
+                return GestureDetector(
+                  onTap: (){
+                    debugPrint("sentmsgandrecivemsg click listener2");
+                    onTapSelectedPhoto(sendFileList[index].fileUrl??"",sendFileList[index]);
+                },
+                  child: Container(
+                    width: IMAGE_MESSAGE_WIDTH,
+                    height: IMAGE_MESSAGE_HEIGHT,
+                    margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
                     ),
-                  ):
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-                    child: Image.asset(
-                      "assets/chat/empty_image.png",
-                      fit: BoxFit.cover,
+                    child:
+                    (sendFileList[index].fileUrl != "")?
+                    (sendFileList[index].fileType.toString().contains("video"))?
+                    VideoMsgView(bloc: bloc,msgItem: msgItem,videoUrl: sendFileList[index].fileUrl??"",):
+                    (sendFileList[0].fileType.toString().contains("gif"))?
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                      child: Image.network(
+                        sendFileList[0].fileUrl??"",
+                        fit: BoxFit.cover,
+                      ),
+                    ):
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                      child: Image.network(
+                        sendFileList[index].fileUrl??"",
+                        fit: BoxFit.cover,
+                      ),
+                    ):
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
+                      child: Image.asset(
+                        "assets/chat/empty_image.png",
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 );
@@ -511,125 +523,6 @@ class ImageMsgOrVideoMsgView extends StatelessWidget {
   }
 }
 
-// class VideoMsgView extends StatelessWidget {
-//   final ChatDetailPageBloc bloc;
-//   const VideoMsgView({
-//     super.key,
-//     required this.msgItem,
-//     required this.bloc
-//   });
-//   final ChatMessageVO msgItem;
-//   Future<void> generateThumbnail(String videoPath) async {
-//    // final tempDir = await getTemporaryDirectory();
-//     final thumbnailPath = await VideoThumbnail.thumbnailFile(
-//       video: videoPath,
-//       thumbnailPath: msgItem.file,
-//       imageFormat: ImageFormat.PNG,
-//       maxHeightOrWidth: 200,
-//       quality: 100,
-//     );
-//     setState(() {
-//       this.thumbnailPath = thumbnailPath;
-//     });
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     debugPrint("check video message");
-//     List<String> sendFileList =  msgItem.file?.split(",")??[];
-//
-//     DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
-//     DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
-//     String dateString = dateFormat.format(dateTime);
-//     return
-//       GestureDetector(
-//         onTap: (){
-//           bloc.videoController!.value.isPlaying
-//               ? bloc.pause()
-//               : bloc.play();
-//         },
-//         child: ClipRRect(
-//           borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),
-//           child: AspectRatio(
-//             aspectRatio: 2/3,
-//             child: bloc.videoController != null ?
-//             Stack(
-//               children: [
-//                 VideoPlayer(
-//                   bloc.videoController!,
-//                 ),
-//                 Center(
-//                   child: Icon(
-//                     bloc.videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow,
-//                     color: Colors.white,
-//                     size: 50,
-//                   ),
-//                 )
-//               ],
-//             ) : const Center(
-//               child: CircularProgressIndicator(),
-//             ),
-//           ),
-//         ),
-//       );
-//     // Container(
-//     //   width: 150,
-//     //   height: 100,
-//     //   child: ListView.builder(
-//     //     reverse: true,
-//     //     scrollDirection: Axis.vertical,
-//     //     // physics: NeverScrollableScrollPhysics(),
-//     //     // shrinkWrap: true,
-//     //     itemCount: sendFileList.length,
-//     //     itemBuilder: (context, index) {
-//     //
-//     //       return Column(
-//     //         crossAxisAlignment: CrossAxisAlignment.end,
-//     //         children: [
-//     //           Container(
-//     //             width: 150,
-//     //             height: 90,
-//     //             margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
-//     //             decoration: BoxDecoration(
-//     //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-//     //             ),
-//     //             child:
-//     //             (sendFileList[index].isNotEmpty)?
-//     //             ClipRRect(
-//     //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-//     //               child: Image.network(
-//     //                 sendFileList[index]??"",
-//     //                 fit: BoxFit.cover,
-//     //               ),
-//     //             ):
-//     //             ClipRRect(
-//     //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-//     //               child: Image.asset(
-//     //                 "assets/chat/empty_image.png",
-//     //                 fit: BoxFit.cover,
-//     //               ),
-//     //             ),
-//     //           ),
-//     //           const SizedBox(height: MARGIN_MEDIUM,),
-//     //           Text(
-//     //             dateString,
-//     //             style: const TextStyle(
-//     //               fontSize: TEXT_XSMALL,
-//     //               color:TEXT_FIELD_HINT_TXT_COLOR,
-//     //               fontWeight: FontWeight.w400,
-//     //             ),
-//     //           ),
-//     //         ],
-//     //       );
-//     //     },
-//     //   ),
-//     // );
-//
-//
-//
-//   }
-// }
-
 class VideoMsgView extends StatelessWidget {
   final ChatDetailPageBloc bloc;
   final String videoUrl;
@@ -643,105 +536,8 @@ class VideoMsgView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-   // bloc.initVideo(msgItem.mediaFile.toString());
-    debugPrint("check video message");
-   // List<String> sendFileList =  msgItem.file?.split(",")??[];
-    List<MediaTypeVO> sendFileList = msgItem.mediaFile??[];//convertToList(msgItem.mediaFile) ;
-  //  List<MediaTypeVO> sendFileList =  msgItem.mediaFile?.values.toList()??[];
-    DateFormat dateFormat = DateFormat("hh:mm a", "en_US");
-    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(msgItem.timestamp.toString()));
-    String dateString = dateFormat.format(dateTime);
     return
-
       VideoViewCustomWidget(videoUrl:videoUrl);
-      // GestureDetector(
-      //   onTap: (){
-      //     bloc.videoController!.value.isPlaying
-      //         ? bloc.pause()
-      //         : bloc.play();
-      //   },
-      //   child: ClipRRect(
-      //     borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),
-      //     child: AspectRatio(
-      //       aspectRatio: 2/3,
-      //       child: bloc.videoController != null ?
-      //       Stack(
-      //         children: [
-      //           VideoPlayer(
-      //             bloc.videoController!,
-      //           ),
-      //           Center(
-      //             child: Icon(
-      //               bloc.videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow,
-      //               color: Colors.white,
-      //               size: 50,
-      //             ),
-      //           )
-      //         ],
-      //       ) : const Center(
-      //         child: CircularProgressIndicator(),
-      //       ),
-      //     ),
-      //   ),
-      // );
-
-
-
-      // Container(
-      //   width: 150,
-      //   height: 100,
-      //   child: ListView.builder(
-      //     reverse: true,
-      //     scrollDirection: Axis.vertical,
-      //     // physics: NeverScrollableScrollPhysics(),
-      //     // shrinkWrap: true,
-      //     itemCount: sendFileList.length,
-      //     itemBuilder: (context, index) {
-      //
-      //       return Column(
-      //         crossAxisAlignment: CrossAxisAlignment.end,
-      //         children: [
-      //           Container(
-      //             width: 150,
-      //             height: 90,
-      //             margin: const EdgeInsets.only(top:MARGIN_MEDIUM),
-      //             decoration: BoxDecoration(
-      //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-      //             ),
-      //             child:
-      //             (sendFileList[index].isNotEmpty)?
-      //             ClipRRect(
-      //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-      //               child: Image.network(
-      //                 sendFileList[index]??"",
-      //                 fit: BoxFit.cover,
-      //               ),
-      //             ):
-      //             ClipRRect(
-      //               borderRadius: BorderRadius.circular(CUSTOM_BUTTON_RADIUS),
-      //               child: Image.asset(
-      //                 "assets/chat/empty_image.png",
-      //                 fit: BoxFit.cover,
-      //               ),
-      //             ),
-      //           ),
-      //           const SizedBox(height: MARGIN_MEDIUM,),
-      //           Text(
-      //             dateString,
-      //             style: const TextStyle(
-      //               fontSize: TEXT_XSMALL,
-      //               color:TEXT_FIELD_HINT_TXT_COLOR,
-      //               fontWeight: FontWeight.w400,
-      //             ),
-      //           ),
-      //         ],
-      //       );
-      //     },
-      //   ),
-      // );
-
-
-
   }
 }
 class TextMsgView extends StatelessWidget {

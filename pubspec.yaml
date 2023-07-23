@@ -57,10 +57,17 @@ dependencies:
   http: ^0.13.6
   #flick_video_player: ^0.4.0
   video_player: ^2.6.1
-  intl: ^0.17.0
-  flutter_staggered_grid_view: ^0.6.2
-  flutter_gif: ^0.0.4
-  #giphy_get: ^3.4.1
+  intl: ^0.18.0
+  #flutter_staggered_grid_view: ^0.6.2
+  #flutter_gif: ^0.0.4
+  giphy_get: ^3.4.1
+  cached_network_image: ^3.2.3
+  photo_view: ^0.14.0
+  #flutter_sound: ^9.2.13
+  record: ^4.4.4
+  permission_handler: ^10.4.3
+  path_provider: ^2.0.15
+  audioplayers: ^4.1.0
   #video_thumbnail: ^0.5.3
  # multi_image_picker_view: ^0.0.15
  # multi_image_picker: ^4.8.1

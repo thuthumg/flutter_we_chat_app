@@ -1,7 +1,11 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+//import 'package:flutter_sound/flutter_sound.dart';
+//import 'package:flutter_sound/public/flutter_sound_recorder.dart';
+import 'package:giphy_get/giphy_get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -10,10 +14,15 @@ import 'package:we_chat_app/blocs/chat_detail_page_bloc.dart';
 import 'package:we_chat_app/components/profile_img_with_active_status_view.dart';
 import 'package:we_chat_app/data/vos/chat_message_vo.dart';
 import 'package:we_chat_app/data/vos/user_vo.dart';
+import 'package:we_chat_app/pages/audio_record_page.dart';
+import 'package:we_chat_app/pages/custom_voice_record_dialog.dart';
 import 'package:we_chat_app/pages/error_alert_box_view.dart';
+import 'package:we_chat_app/pages/photo_view_page.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
-import 'package:we_chat_app/viewitems/bottom_sheet_view.dart';
+import 'package:we_chat_app/utils/extensions.dart';
+import 'package:we_chat_app/viewitems/giphy_custom_view.dart';
+import 'package:we_chat_app/viewitems/giphy_widget.dart';
 import 'package:we_chat_app/viewitems/sent_msg_and_receive_msg_view_item.dart';
 import 'package:we_chat_app/widgets/loading_view.dart';
 
@@ -65,7 +74,13 @@ class ChatDetailPage extends StatelessWidget {
                             bloc.onRemoveSelectedImage(selectedId);
                         },),
                       ),
-
+                      Visibility(
+                        visible: (bloc.selectedGifImages.isNotEmpty) ? true : false,
+                        child: SelectGifImageSectionView(chatDetailPageBloc: bloc,
+                          onTapDeleteSelectedData: (selectedId){
+                            bloc.onRemoveSelectedGifImage(selectedId);
+                          },),
+                      ),
                       ///Type And Send Msg Section View
                       SendMsgSectionView(
                           chatDetailPageBloc: bloc,
@@ -77,9 +92,11 @@ class ChatDetailPage extends StatelessWidget {
                                 bloc.userVO?.userName,
                                 bloc.selectedImages,
                                 bloc.userVO?.profileUrl,
-                                isGroupChat).then((value) {
+                                isGroupChat,
+                              bloc.selectedGifImages).then((value) {
                                   bloc.typeMessageText = "";
                                   bloc.selectedImages = [];
+                                  bloc.selectedGifImages = [];
                                 })
                                 .catchError((error){
 
@@ -109,6 +126,8 @@ class ChatDetailPage extends StatelessWidget {
                             _takePhotoFromCamera(bloc);
                           else if(bottomNavIndex == 2)
                             _gifImages(context,bloc);
+                          else if(bottomNavIndex == 4)
+                            _voiceRecord(context,bloc);
                         },
                       ),
                     ],
@@ -140,31 +159,58 @@ class ChatDetailPage extends StatelessWidget {
   }
 
   Future<void> _gifImages(BuildContext context,ChatDetailPageBloc bloc) async {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return BottomSheetView(
-        );
-      },
-      isScrollControlled: true
-    );
+
+    showGiphyPicker(context,bloc);
+
+    // showModalBottomSheet<void>(
+    //   context: context,
+    //   builder: (BuildContext context) {
+    //     return
+    //
+    //       CustomGiphyScreen();
+    //       //GiphyWidget();
+    //      // BottomSheetView();
+    //   },
+    //   isScrollControlled: true
+    // );
 
   }
+  Future<void> showGiphyPicker(BuildContext context,ChatDetailPageBloc bloc) async {
+    final gif = await GiphyGet.getGif(context: context, apiKey: 'VV9RTZMYg9CMotPE7viDXSQTwOJos5Yg');
 
+    if (gif != null) {
+      // Use the selected gif
+      print('Selected Gif: ${gif.images?.original?.url}');
+      bloc.onTapGifImage(gif.images?.original?.url??"");
+    }
+  }
   Future<void> _takePhotoFromCamera(ChatDetailPageBloc bloc) async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(
         source: ImageSource.camera);
     if (image != null) {
-
-      // List<String?> filePaths = result.paths;
-      // List fileTypes = result.paths
-      //     .map((path) => getFileTypeFromPath(path))
-      //     .toList();
-
       bloc.onTakePhoto(File(image.path));
     }
   }
+
+}
+
+Future<void> _voiceRecord(BuildContext context, ChatDetailPageBloc bloc) async {
+
+/*  Navigator.of(context).push(
+    MaterialPageRoute(builder: (context) => VoiceRecorderApp()),
+  );*/
+
+   showModalBottomSheet<void>(
+     context: context,
+     builder: (BuildContext context) {
+       return
+         CustomVoiceRecordDialog(bloc:bloc);
+
+     },
+     isScrollControlled: true
+   );
+
 
 }
 
@@ -326,7 +372,82 @@ class _ActionButtonSectionViewForSendMediaMsgState
     );
   }
 }
+class SelectGifImageSectionView extends StatelessWidget {
+  final Function(int) onTapDeleteSelectedData;
+  final ChatDetailPageBloc chatDetailPageBloc;
+  const SelectGifImageSectionView({super.key,
+    required this.onTapDeleteSelectedData,
+    required this.chatDetailPageBloc});
 
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 120,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: chatDetailPageBloc.selectedGifImages.length,
+        itemBuilder: (BuildContext context, int index) {
+
+          print("chatdetail ${chatDetailPageBloc.selectedGifImages[index].toString()}");
+
+          return Container(
+              width: 100,
+              height: 60,
+              margin: const EdgeInsets.only(
+                  left: MARGIN_MEDIUM,
+                  right: MARGIN_MEDIUM,
+                  bottom: MARGIN_MEDIUM_2),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),
+                color: Color.fromRGBO(100, 100, 100, 0.2)
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    left: 0,
+                    bottom:0,
+                    child:
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(MARGIN_CARD_MEDIUM_2),
+                      child:
+                      CachedNetworkImage(
+                        imageUrl:  chatDetailPageBloc.selectedGifImages[index],
+                        progressIndicatorBuilder: (context, url, downloadProgress) =>
+                            Container(
+                                margin: EdgeInsets.all(MARGIN_MEDIUM_3),
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(value: downloadProgress.progress)),
+                        errorWidget: (context, url, error) => Icon(Icons.error),
+                      ),
+                      // Image.network(
+                      //   chatDetailPageBloc.selectedGifImages[index],
+                      //   fit: BoxFit.cover,
+                      // ),
+
+                    ),),
+
+                  Positioned(
+                      top: 0,
+                      left: 0,
+                      child: GestureDetector(
+                          onTap: (){
+                            onTapDeleteSelectedData(index);
+                          },
+                          child: Icon(Icons.cancel,size: 25,color: Colors.black,)))
+
+
+                ],
+              )
+
+          );
+        },
+      ),
+    );
+  }
+}
 class SelectImageSectionView extends StatelessWidget {
  final Function(int) onTapDeleteSelectedData;
   final ChatDetailPageBloc chatDetailPageBloc;
@@ -529,6 +650,14 @@ class ChatMsgSectionView extends StatelessWidget {
                 bloc: bloc,
                 loginUserVO: loginUserVO,
                 msgItem: message,
+                  onTapSelectedPhoto: (url,mediaTypeVO){
+                  debugPrint("chat detail page");
+                    navigateToScreen(context,MediaDetailViewPage(
+                        imageUrl : url,
+                            mediaTypeVO : mediaTypeVO
+                    ),false);
+
+                  },
               )
             ],
           );

@@ -85,7 +85,7 @@ class LoginView extends StatelessWidget {
       buttonHeight: CUSTOM_BUTTON_HEIGHT,
       buttonWidth: 0.0,
       onTapButton: () {
-        navigateToScreen(context, LoginPage(),false);
+        navigateToScreen(context, LoginPage(isRegistrationFlag:false),false);
       },
     );
   }

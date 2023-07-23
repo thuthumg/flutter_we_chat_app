@@ -518,7 +518,7 @@ class SignUpSectionView extends StatelessWidget {
           bloc.onTapSignUp(phoneNum, email).then((value){
             Navigator.pop(context);
             Navigator.pop(context);
-            navigateToScreen(context, LoginPage(),true);
+            navigateToScreen(context, LoginPage(isRegistrationFlag:true),true);
 
           } );
 

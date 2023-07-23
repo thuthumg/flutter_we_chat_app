@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:we_chat_app/resources/dimens.dart';
+
+
 
 class QRSectionView extends StatelessWidget {
 
@@ -18,7 +19,8 @@ class QRSectionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return QrImage(
+    return
+      QrImageView(
       padding: EdgeInsets.all(2),
       data: qrStr,
       version: QrVersions.auto,

@@ -129,8 +129,11 @@ class WeChatAppModelImpl extends WeChatAppModel {
   }
 
   @override
-  Future<void> sendMessage(String senderId, String receiverId, String sendMsg, String senderName, List<File> sendMsgFileUrl, String profileUrl, String timestamp) {
-    return mRealTimeDataAgent.sendMessage(senderId, receiverId, sendMsg, senderName, sendMsgFileUrl, profileUrl, timestamp);
+  Future<void> sendMessage(String senderId, String receiverId, String sendMsg, String senderName,
+      List<File> sendMsgFileUrl, String profileUrl,
+      String timestamp,List<String> selectedGifImages) {
+    return mRealTimeDataAgent.sendMessage(senderId, receiverId, sendMsg,
+        senderName, sendMsgFileUrl, profileUrl, timestamp, selectedGifImages);
   }
 
   @override
@@ -193,9 +196,11 @@ class WeChatAppModelImpl extends WeChatAppModel {
       String senderName,
       List<File> sendMsgFileUrl,
       String profileUrl,
-      String timestamp) {
+      String timestamp,
+      List<String>  selectedGifImages) {
     return mRealTimeDataAgent.sendGroupMessage(senderId,
-        receiverId, sendMsg, senderName, sendMsgFileUrl, profileUrl, timestamp);
+        receiverId, sendMsg, senderName, sendMsgFileUrl,
+        profileUrl, timestamp, selectedGifImages);
 
   }
 }

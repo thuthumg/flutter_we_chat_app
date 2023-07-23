@@ -7,7 +7,8 @@ import 'package:we_chat_app/data/vos/chat_message_vo.dart';
 abstract class WeChatAppRealTimeDBDataAgent {
 
   Future<void> sendMessage(String senderId, String receiverId, String sendMsg,
-      String senderName, List<File> sendMsgFileUrl, String profileUrl,String timestamp);
+      String senderName, List<File> sendMsgFileUrl,
+      String profileUrl,String timestamp, List<String>  selectedGifImages);
 
   Stream<List<ChatMessageVO>> getChatMessageList(String loginUserId,String receiverId,bool isGroup);
   Stream<List<ChatHistoryVO>> getChatHistoryList(String loginUserId);
@@ -24,7 +25,8 @@ abstract class WeChatAppRealTimeDBDataAgent {
       String senderName,
       List<File> sendMsgFileUrl,
       String profileUrl,
-      String timestamp);
+      String timestamp,
+      List<String>  selectedGifImages);
 
 
 }

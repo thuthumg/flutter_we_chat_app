@@ -10,6 +10,11 @@ class LoginPageBloc extends ChangeNotifier{
   String email = "";
   String password = "";
   bool isDisposed = false;
+  bool isRegistrationSuccess = false;
+
+  LoginPageBloc(bool registrationSuccessFlag) {
+    isRegistrationSuccess = registrationSuccessFlag;
+  }
 
   ///Model
   final AuthenticationModel _model = AuthenticationModelImpl();
@@ -45,6 +50,7 @@ class LoginPageBloc extends ChangeNotifier{
   @override
   void dispose() {
     super.dispose();
+    isRegistrationSuccess = false;
     isDisposed = true;
   }
 

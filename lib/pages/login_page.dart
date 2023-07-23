@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:we_chat_app/blocs/login_page_bloc.dart';
-import 'package:we_chat_app/data/vos/user_vo.dart';
 import 'package:we_chat_app/pages/home_page.dart';
 import 'package:we_chat_app/resources/colors.dart';
 import 'package:we_chat_app/resources/dimens.dart';
@@ -12,12 +11,17 @@ import 'package:we_chat_app/widgets/edit_text_widget.dart';
 import 'package:we_chat_app/widgets/loading_view.dart';
 
 class LoginPage extends StatelessWidget{
-  const LoginPage({super.key});
+  const LoginPage({super.key,required this.isRegistrationFlag});
+
+  final bool isRegistrationFlag;
+
+
 
   @override
   Widget build(BuildContext context) {
+
     return ChangeNotifierProvider(
-      create: (context)=>LoginPageBloc(),
+      create: (context)=>LoginPageBloc(isRegistrationFlag),
       child: Scaffold(
         backgroundColor: PRIMARY_COLOR,
         appBar: AppBar(
@@ -27,104 +31,134 @@ class LoginPage extends StatelessWidget{
               onTap: (){Navigator.pop(context);},
               child: Image.asset('assets/left_button.png')),
         ),
-        body: Selector<LoginPageBloc,bool>(
-          selector: (context,bloc) => bloc.isLoading,
-          builder:(context,isLoading,child)=> Padding(
-            padding: const EdgeInsets.only(left: MARGIN_XXLARGE,right: MARGIN_LARGE),
-            child: SingleChildScrollView(
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ///Title
-                      const Text(
-                        WELCOME_TXT,
-                        style: TextStyle(
-                          fontSize: HI_TXT_FONT_SIZE,
-                          color: SECONDARY_COLOR,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(
-                        height: MARGIN_MEDIUM,
-                      ),
-                      ///SubTitle
-                      const Text(
-                        LOGIN_TO_CONTINUE_TXT,
-                        style: TextStyle(
-                          fontSize: TEXT_REGULAR_1X,
-                          color: CREATE_NEW_ACCOUNT_TXT_COLOR,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      const SizedBox(
-                        height: MARGIN_MEDIUM,
-                      ),
+        body:
+        Consumer<LoginPageBloc>(
+          builder:(context,bloc,child)
+             {
+                if(bloc.isRegistrationSuccess)
+                  {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext dialogContext) {
+                          return AlertDialog(
+                            title: const Text('Registration Success!'),
+                            content: const Text('Please login with the current registered account.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  bloc.isRegistrationSuccess = false;
+                                  Navigator.of(dialogContext).pop();
+                                },
+                                child: const Text('Close'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    });
+                  }
 
-                      ///Image
-                      Center(
-                        child: Image.asset('assets/login/login_bg_img.png',
-                            fit: BoxFit.cover),),
 
-                      ///Phone Number edit text section
-                      Consumer<LoginPageBloc>(
-                          builder: (context,bloc,child)=>
-                          EmailTextFieldSectionView(bloc:bloc)),
-                      const SizedBox(
-                        height: MARGIN_XLARGE,
-                      ),
+               return Padding(
+               padding: const EdgeInsets.only(left: MARGIN_XXLARGE,right: MARGIN_LARGE),
+               child: SingleChildScrollView(
+                 child: Stack(
+                   alignment: Alignment.center,
+                   children: [
+                     Column(
+                       mainAxisSize: MainAxisSize.min,
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                       children: [
+                         ///Title
+                         const Text(
+                           WELCOME_TXT,
+                           style: TextStyle(
+                             fontSize: HI_TXT_FONT_SIZE,
+                             color: SECONDARY_COLOR,
+                             fontWeight: FontWeight.w700,
+                           ),
+                         ),
+                         const SizedBox(
+                           height: MARGIN_MEDIUM,
+                         ),
+                         ///SubTitle
+                         const Text(
+                           LOGIN_TO_CONTINUE_TXT,
+                           style: TextStyle(
+                             fontSize: TEXT_REGULAR_1X,
+                             color: CREATE_NEW_ACCOUNT_TXT_COLOR,
+                             fontWeight: FontWeight.w400,
+                           ),
+                         ),
+                         const SizedBox(
+                           height: MARGIN_MEDIUM,
+                         ),
 
-                      ///Password edit text section
-                      Consumer<LoginPageBloc>(
-                          builder: (context,bloc,child)=>
-                          PasswordTextFieldSectionView(bloc:bloc)),
-                      const SizedBox(
-                        height: MARGIN_XLARGE,
-                      ),
+                         ///Image
+                         Center(
+                           child: Image.asset('assets/login/login_bg_img.png',
+                               fit: BoxFit.cover),),
 
-                      ///Forgot password link section
-                      const Align(
-                        alignment:  Alignment.centerRight,
-                        child: Text(
-                          FORGET_PW_TXT,
-                          style: TextStyle(
-                            fontSize: TEXT_REGULAR_1X,
-                            color: SECONDARY_COLOR,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: MARGIN_XXLARGE,
-                      ),
+                         ///Phone Number edit text section
+                         Consumer<LoginPageBloc>(
+                             builder: (context,bloc,child)=>
+                                 EmailTextFieldSectionView(bloc:bloc)),
+                         const SizedBox(
+                           height: MARGIN_XLARGE,
+                         ),
 
-                      ///Login Section
-                      Consumer<LoginPageBloc>(
-                          builder: (context,bloc,child)=>
-                          LoginSectionView(bloc:bloc))
-                    ],
-                  ),
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                     bottom: 0,
-                     child: Visibility(
-                        visible: isLoading,
-                        child: Container(
-                          // color: Colors.transparent,
-                          child: Center(
-                            child: LoadingView(),
-                          ),
-                        ),)
-                  )
-                ],
-              ),
-            ),
-          ),
+                         ///Password edit text section
+                         Consumer<LoginPageBloc>(
+                             builder: (context,bloc,child)=>
+                                 PasswordTextFieldSectionView(bloc:bloc)),
+                         const SizedBox(
+                           height: MARGIN_XLARGE,
+                         ),
+
+                         ///Forgot password link section
+                         const Align(
+                           alignment:  Alignment.centerRight,
+                           child: Text(
+                             FORGET_PW_TXT,
+                             style: TextStyle(
+                               fontSize: TEXT_REGULAR_1X,
+                               color: SECONDARY_COLOR,
+                               fontWeight: FontWeight.w700,
+                             ),
+                           ),
+                         ),
+                         const SizedBox(
+                           height: MARGIN_XXLARGE,
+                         ),
+
+                         ///Login Section
+                         Consumer<LoginPageBloc>(
+                             builder: (context,bloc,child)=>
+                                 LoginSectionView(bloc:bloc))
+                       ],
+                     ),
+                     Positioned(
+                         top: 0,
+                         left: 0,
+                         right: 0,
+                         bottom: 0,
+                         child: Visibility(
+                           visible: bloc.isLoading,
+                           child: Container(
+                             // color: Colors.transparent,
+                             child: Center(
+                               child: LoadingView(),
+                             ),
+                           ),)
+                     )
+                   ],
+                 ),
+               ),
+             );
+
+             }
+
         ),
       ),
     );

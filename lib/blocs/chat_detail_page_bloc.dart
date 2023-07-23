@@ -24,6 +24,8 @@ class ChatDetailPageBloc extends ChangeNotifier {
   List<ChatMessageVO> chatMessageVOList = [];
   List<File> selectedImages = [];
 
+  String voiceRecordedFile="";
+
   bool fileTypeStr = false;
 
   VideoPlayerController? _videoController;
@@ -34,6 +36,9 @@ class ChatDetailPageBloc extends ChangeNotifier {
 
   ///Image
   File? takePhotoImageFile;
+
+  String? selectedGifUrl;
+  List<String> selectedGifImages = [];
 
   ChatDetailPageBloc(String receiverId,bool isGroup) {
     _showLoading();
@@ -61,6 +66,15 @@ class ChatDetailPageBloc extends ChangeNotifier {
     selectedImages.add(takePhotoImageFile??File(""));
     _notifySafely();
   }
+
+  void onTapGifImage(String gifUrl){
+    selectedImages = [];
+  selectedGifUrl = gifUrl;
+  selectedGifImages = [];
+  selectedGifImages.add(selectedGifUrl??"");
+    _notifySafely();
+  }
+
   void onTypeMessageTextChanged(String typeMessageText) {
     this.typeMessageText = typeMessageText;
   }
@@ -72,10 +86,11 @@ class ChatDetailPageBloc extends ChangeNotifier {
     senderName,
     sendMsgFileUrl,
     profileUrl,
-      isChatGroup
+      isChatGroup,
+      selectedGifImagesParam
   ) {
     _showLoading();
-    if (typeMessageText.isEmpty && selectedImages.isEmpty) {
+    if (typeMessageText.isEmpty && selectedImages.isEmpty && selectedGifImages.isEmpty) {
       debugPrint("type text empty case");
       _hideLoading();
       isSendMessageError = true;
@@ -90,7 +105,7 @@ class ChatDetailPageBloc extends ChangeNotifier {
       if(isChatGroup)
         {
           return _sendGroupChatMessage(senderId, receiverId, sendMsg, senderName,
-              sendMsgFileUrl, profileUrl)
+              sendMsgFileUrl, profileUrl, selectedGifImagesParam)
               .then((value) {
             isLoading = false;
             _hideLoading();
@@ -99,7 +114,7 @@ class ChatDetailPageBloc extends ChangeNotifier {
         }
       else{
         return _sendChatMessage(senderId, receiverId, sendMsg, senderName,
-            sendMsgFileUrl, profileUrl)
+            sendMsgFileUrl, profileUrl, selectedGifImagesParam)
             .then((value) {
           isLoading = false;
           _hideLoading();
@@ -110,22 +125,9 @@ class ChatDetailPageBloc extends ChangeNotifier {
 
     }
   }
-
-  //  checkFileType(String msgFile){
-  //   getContentType(msgFile).then((value) {
-  //     if (value != null) {
-  //       fileTypeStr = value;
-  //      // stringValue = value;
-  //      // print(stringValue);
-  //     } else {
-  //       print('Error: Future returned null');
-  //     }
-  //   });
-  //   _notifySafely();
-  // }
-
-
-
+  saveVoiceRecordedFile(String recordedFile){
+    this.voiceRecordedFile = recordedFile;
+  }
    checkFileFromUrl(String url) {
     print("check url = ${url}");
     http.head(Uri.parse(url)).then((http.Response response) {
@@ -163,30 +165,8 @@ class ChatDetailPageBloc extends ChangeNotifier {
     return contentType.startsWith('video/');
   }
 
-  //
-  // Future<bool> getContentType(String downloadUrl)  {
-  //   try {// Future<String?>
-  //     final response =  http.head(Uri.parse(downloadUrl));
-  //     var contentType =  response.headers['content-type'].toString();
-  //    return contentType != null && contentType.startsWith('image/');
-  //
-  //   } catch (e) {
-  //     print('Error retrieving content type: $e');
-  //     return false;
-  //   }
-  // }
-  // bool isImageFile(String contentType) {
-  //   print('isImageFile: $contentType');
-  //
-  //   return contentType != null && contentType.startsWith('image/');
-  // }
-  //
-  // bool isVideoFile(String contentType) {
-  //   return contentType != null && contentType.startsWith('video/');
-  // }
-
   Future<void> _sendChatMessage(senderId, receiverId, sendMsg, senderName,
-      sendMsgFileUrl, profileUrl) async {
+      sendMsgFileUrl, profileUrl, selectedGifImages) async {
     _mWeChatAppModel.sendMessage(
         senderId,
         receiverId,
@@ -194,22 +174,15 @@ class ChatDetailPageBloc extends ChangeNotifier {
         senderName,
         sendMsgFileUrl,
         profileUrl,
-        DateTime.now().millisecondsSinceEpoch.toString());
+        DateTime.now().millisecondsSinceEpoch.toString(),
+        selectedGifImages
+    );
 
     _notifySafely();
   }
 
-/*  void onImageChosen(File imageFile){
-    _showLoading();
-    selectedImages.add(imageFile);
-    _hideLoading();
-    _notifySafely();
-
-  }*/
-
   void onImageChosen(List<dynamic> imageFiles){
     _showLoading();
-    // chosenImageFile = imageFile;
     imageFiles.forEach((element) {
       selectedImages.add(File(element));
     });
@@ -222,6 +195,10 @@ class ChatDetailPageBloc extends ChangeNotifier {
     selectedImages.removeAt(selectedId);
     _notifySafely();
 }
+  void onRemoveSelectedGifImage(int selectedId){
+    selectedGifImages.removeAt(selectedId);
+    _notifySafely();
+  }
 
   @override
   void dispose() async {
@@ -248,7 +225,8 @@ class ChatDetailPageBloc extends ChangeNotifier {
 
 
   Future<void> _sendGroupChatMessage(senderId, receiverId, sendMsg, senderName,
-      sendMsgFileUrl, profileUrl) async {
+      sendMsgFileUrl, profileUrl, selectedGifImages) async {
+
     _mWeChatAppModel.sendGroupMessage(
         senderId,
         receiverId,
@@ -256,7 +234,8 @@ class ChatDetailPageBloc extends ChangeNotifier {
         senderName,
         sendMsgFileUrl,
         profileUrl,
-        DateTime.now().millisecondsSinceEpoch.toString());
+        DateTime.now().millisecondsSinceEpoch.toString(),
+        selectedGifImages);
 
     _notifySafely();
   }
@@ -269,14 +248,7 @@ class ChatDetailPageBloc extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> initVideoWithNetworkLink(String path) async {
 
-    print("initvideowithnetwork ${path}");
-   // _videoController?.dispose();
-    _videoController = VideoPlayerController.network(path);
-    await _videoController!.initialize();
-    notifyListeners();
-  }
 
   Future<void> play() async {
     await _videoController!.play();

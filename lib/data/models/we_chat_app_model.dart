@@ -33,7 +33,8 @@ abstract class WeChatAppModel{
   Stream<List<UserVO>> getContactList(String userVOId);
 
   Future<void> sendMessage(String senderId, String receiverId, String sendMsg,
-      String senderName, List<File> sendMsgFileUrl, String profileUrl,String timestamp);
+      String senderName, List<File> sendMsgFileUrl, String profileUrl,
+      String timestamp,List<String>  selectedGifImages);
 
 
   Stream<List<ChatMessageVO>> getChatMessageList(String loginUserId,String receiverId,
@@ -55,6 +56,7 @@ abstract class WeChatAppModel{
       String senderName,
       List<File> sendMsgFileUrl,
       String profileUrl,
-      String timestamp);
+      String timestamp,
+      List<String> selectedGifImages);
 
 }

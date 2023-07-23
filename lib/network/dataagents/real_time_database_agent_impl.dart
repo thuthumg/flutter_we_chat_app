@@ -59,9 +59,10 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
       String senderName,
       List<File> sendMsgFileUrl,
       String profileUrl,
-      String timestamp) {
+      String timestamp,
+      List<String>  selectedGifImages) {
     debugPrint("check send Message ${sendMsgFileUrl.length}");
-    if (sendMsgFileUrl != null) {
+    if (sendMsgFileUrl.isNotEmpty) {//sendMsgFileUrl != null
       return mDataAgent
           .multiUploadFileToFirebaseForChatMsg(sendMsgFileUrl)
           .then(
@@ -73,13 +74,40 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
                   profileUrl,
                   timestamp));
               } else {
-      return sendChatMessageVO(senderId,
-          receiverId,
-          sendMsg,
-          senderName,
-          [],
-          profileUrl,
-          timestamp);
+      debugPrint("check link data ${selectedGifImages.toString()}");
+      if(selectedGifImages.isNotEmpty)
+        {
+          List<MediaTypeVO> strGifImage = [];
+          strGifImage.add(MediaTypeVO(
+              id: "1",
+              fileType: "gif",
+              fileUrl: selectedGifImages.firstOrNull.toString()
+          ));
+
+          debugPrint("check link data ${strGifImage.length}");
+
+          return sendChatMessageVO(senderId,
+              receiverId,
+              sendMsg,
+              senderName,
+              strGifImage,
+              profileUrl,
+              timestamp);
+        }
+      else
+        {
+          return sendChatMessageVO(senderId,
+              receiverId,
+              sendMsg,
+              senderName,
+              [],
+              profileUrl,
+              timestamp);
+        }
+
+
+
+
     }
 
 
@@ -142,6 +170,8 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
 
    // List<Map<String, dynamic>> mapList = mediaTypeVOList.map((item) => item.toJson()).toList();
    // List<MediaTypeVO> mediaTypeVOListNew = mapList.map((map) => MediaTypeVO.fromJson(map)).toList();
+
+    debugPrint("check mediatypeVO ${mediaTypeVOList.toString()}");
 
     databaseRef
         .child(contactsAndMessagesCollection)
@@ -658,10 +688,11 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
       String senderName,
       List<File> sendMsgFileUrl,
       String profileUrl,
-      String timestamp)
+      String timestamp,
+      List<String>  selectedGifImages)
     {
 
-      if (sendMsgFileUrl != null) {
+      if (sendMsgFileUrl.isNotEmpty) {
         return mDataAgent
             .multiUploadFileToFirebaseForChatMsg(sendMsgFileUrl)
             .then(
@@ -674,14 +705,40 @@ class RealtimeDatabaseDataAgentImpl extends WeChatAppRealTimeDBDataAgent {
                 profileUrl,
                 timestamp));
       } else {
-        return sendGroupChatMessageVO(
-            senderId,
-            receiverId,
-            sendMsg,
-            senderName,
-            [],
-            profileUrl,
-            timestamp);
+
+        if(selectedGifImages.isNotEmpty)
+
+          {
+            List<MediaTypeVO> strGifImage = [];
+            strGifImage.add(MediaTypeVO(
+                id: "1",
+                fileType: "gif",
+                fileUrl: selectedGifImages.firstOrNull.toString()
+            ));
+
+
+            return sendGroupChatMessageVO(
+                senderId,
+                receiverId,
+                sendMsg,
+                senderName,
+                strGifImage,
+                profileUrl,
+                timestamp);
+          }
+        else
+          {
+            return sendGroupChatMessageVO(
+                senderId,
+                receiverId,
+                sendMsg,
+                senderName,
+                [],
+                profileUrl,
+                timestamp);
+          }
+
+
       }
 
 
